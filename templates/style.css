@@ -1,0 +1,43 @@
+	.ui-tabs {
+		position: static;
+	}
+
+	* {
+		 box-sizing: content-box;
+	}
+	
+	.mentees ul li{
+		margin: 0 2px 2px 2px; 
+		padding: 2px;
+		font-size: 1em; 
+		width: 200px; 
+	}
+	
+	.mentee-1{
+		margin: 0 2px 2px 2px; 
+		padding: 2px;
+		font-size: 1em; 
+		width: 200px; 
+	}
+	.light {
+		border: 1px solid #AAA;
+		background: #CCC;
+		color: #222;
+		font-weight: bold;
+	}
+	.dark {
+		border: 1px solid #AAA;
+		background: #DDD;
+		color: #222;
+		font-weight: bold;
+	}
+	.ui-accordion-content{
+		box-sizing: content-box;
+	}
+	#toolbar {
+		padding: 5px 4px;
+	}
+	#accordion{
+		box-sizing: content-box;
+	}
+
