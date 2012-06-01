@@ -1,7 +1,7 @@
 <script src="/webapp/training-tracker/templates/js/index.js"></script>
 <link rel="stylesheet" href="/webapp/training-tracker/templates/css/index.css" type="text/css" />
 
-
+{*  *}
 
 {box size="16" title="My team"}
 
