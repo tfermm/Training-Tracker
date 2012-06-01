@@ -90,47 +90,18 @@ $(document).ready(function() {
 
 		//if it checkbox you clicked was just checked.
 		if (e.target.checked){
-			if (checkboxData == "0"){
-				//if there was no data in checkboxData before set it to the id of the checkbox
-				checkboxData = e.target.id;
-			}else{
-				//if there is data in the checkboxData variable append ",id" to the end
-				if (checkboxData.indexOf(e.target.id)==-1){
-					checkboxData = checkboxData + "," + e.target.id;
-				}
-			}
+			//pass complete
+			var responce = "complete"
 		}else{
-
-			//if you just unchecked the checkbox
-			if (checkboxData.indexOf(e.target.id)!=-1){
-					//if the checkbox id is in checkboxData
-					if (checkboxData.indexOf(e.target.id) > 1){
-						var replace_string = "," + e.target.id; 
-						//replace the id and a , if it isnt the first thing in the string with ""
-						checkboxData = checkboxData.replace(replace_string,"");
-					}else{
-						//if it is the first id in the string then replace it with ""
-						var replace_string = e.target.id; 
-						checkboxData = checkboxData.replace(replace_string,"");
-						
-					}
-				}
-
-
-		}
-		//checking the string for extranious cases.
-		if (checkboxData.indexOf(",")==0){
-			checkboxData = checkboxData.replace(",","");
-		}
-		if (checkboxData == ""){
-				checkboxData = "0";
+			//pass n/a	
+			var responce = "n/a"
 		}
 		//active user is the person looking at the page
 		//current user is the person they are looking at
 
-		postData[0]=checkboxData;
+		postData[0]=e.target.id; //id of the checkbox
 		postData[1]=current_user_wpid;
-		postData[2]=active_user_wpid;
+		postData[2]=responce;
 		$.ajax({
 			type: "POST",
 			url: "/webapp/training-tracker/checklist_post_chkbox",

@@ -98,12 +98,18 @@ respond( '/?', function( $request, $response, $app ) {
 	$staff_collection = new TrainingTracker\StaffCollection();
 	$staff_collection->load(); 
 
-	//populate the meta data in the database.
-	$result = $staff_collection->populate_meta();
-	
 	$staff = $staff_collection->staff();
-	
-	if (!$is_mentor){
+	foreach ($staff as $person){
+		$pidm = PSU::get('idmobject')->getidentifier($person['wpid'], 'wp_id', 'pidm');
+		$result = PSU::db('hr')->GetOne("SELECT PIDM FROM person_checklists WHERE PIDM=? AND closed=?", array($pidm, 0));
+		if (!$result){
+			$type = PSU::db('hr')->GetOne("SELECT type FROM checklist WHERE slug=?",array($person['privileges']));
+			$inserted = PSU::db('hr')->Execute("INSERT INTO person_checklists (type, PIDM, closed) VALUES (?, ?, ?)", array($type, $pidm, 0));
+			PSU::dbug($pidm);
+		}
+	}
+
+	if (!$is_admin){
 		foreach ($staff as $person){
 			if ($person['wpid'] == $current_user['wpid']){
 				$current_user['percent'] = $person['percent'];		
@@ -154,10 +160,6 @@ respond( '/teams', function( $request, $response, $app ) {
 			$student['team'] = false;
 		}
 	}
-
-
-	//getting all the item categories
-	$result = PSU::db('hr')->GetAll("SELECT * FROM checklist_item_categories WHERE 1");
 	
 	//check to see if the mentee has a team
 	foreach ($mentee as &$student){
@@ -213,21 +215,23 @@ respond( '/checklist/[:wpid]?', function( $request, $responce, $app ) {
 	$active_user['wpid'] = $_SESSION['wp_id'];
 	$active_user['name'] = PSUPerson::get($active_user['wpid'])->formatname("f l");
 	$wpid = $request->wpid;
-	$current_user['name'] = PSUPerson::get($wpid)->formatname("f l");
+	$person = PSUPerson::get($wpid);
+	$current_user['username'] = $person->username;
+	$current_user['name'] = $person->formatname("f l");
+	$current_user['pidm'] = $person->pidm;
 	$current_user['wpid'] = $wpid;
+	$current_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($current_user['username']));
+	$active_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($_SESSION['username']));
+	PSU::dbug($current_user);
+	
+	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=? AND closed=?", array($pidm, 0));
 
+die();
 	//get the data for which check boxes are checked
-
-	$checklist_checked = PSU::db('hr')->GetOne("SELECT checkboxes FROM training_tracker_checklist_meta WHERE wpid = ?",array($wpid));
-
-	//active user being the person looking at this
-	//current user is the person the active user is looking at
-	$current_user_level = PSU::db('hr')->GetOne("SELECT current_level FROM training_tracker_checklist_meta WHERE wpid = ?", array($wpid));
-	$active_user_level = PSU::db('hr')->GetOne("SELECT current_level FROM training_tracker_checklist_meta WHERE wpid = ?", array($active_user['wpid']));
+	$checklist_checked = PSU::db('hr')->GetAll("SELECT * FROM person_checklist_items WHERE checklist_id=? AND responce=?",array($checklist_id, "complete"));
 
 	$last_modified = PSU::db('hr')->GetAll("SELECT * FROM training_tracker_checklist_meta WHERE wpid = ?", array($current_user['wpid']));
 
-	//check to see if somebody has modified the current user
 	//the title is the title name in the box.
 	if (strlen($last_modified[0]['modified_by'])>2){
 		$title = $current_user['name'] . " - Last modified by " . PSUPerson::get($last_modified[0]['modified_by'])->formatname("f l") . " on " . $last_modified[0]['time'];
@@ -248,13 +252,15 @@ respond( '/checklist/[:wpid]?', function( $request, $responce, $app ) {
 	$mentee = $staff_collection->mentees();//select all the mentees
 
 	//populating some variables to generate the checklist.
-	$checklist_items = get_checklist_items($current_user_level);
+	$checklist_items = get_checklist_items($current_user_level); //todo make this grab items based off of checklist id, 
+																															 //fix these functions to work with new db structure
 	$checklist_item_sub_cat = get_checklist_sub_cat($current_user_level);
 	$checklist_item_cat = get_checklist_item_categories($current_user_level);
 
 	$stats = get_stats($current_user['wpid']);
 	$progress = $stats['progress'];
 
+	$app->tpl->assign('checklist_id', $checklist_id);	
 	$app->tpl->assign('progress', $progress);	
 	$app->tpl->assign('title', $title);	
 	$app->tpl->assign('checked', $checklist_checked);
@@ -449,30 +455,32 @@ respond( '/checklist_post_comments', function( $request, $responce, $app ) {
 respond( '/checklist_post_chkbox', function( $request, $responce, $app ) {
 //checked is a string containing the checked boxes id's seperated by a ","
 
-	$checked = $_POST['data'][0];
+	$checked_id = $_POST['data'][0];
 	$wpid = $_POST['data'][1];
-	$modified_by = $_POST['data'][2];
-//	$wpid = "p6jaeowpq"; //test case
+	$responce = $_POST['data'][2];
+	//todo fix post[2] to be responce (complete,n/a)
+	$pidm = PSU::get('idmobject')->getidentifier( $wpid, "wp_id", "pidm" );
+	$modified_by = $_SESSION['pidm'];
 
-	//making my own auto increment field
+/*	//making my own auto increment field
 	$row = PSU::db('hr')->GetOne("SELECT MAX(id) FROM training_tracker_checklist_meta");
 	$row +=1;
 	$id = $row;
+ */
 
-	//checking to see if the person already exists in the database
-	$result = PSU::db('hr')->GetAll("SELECT * FROM training_tracker_checklist_meta WHERE wpid = ?", array($wpid));
+	$checklist_id = PSU::db('hr')->GetOne("SELECT item_id FROM person_checklists WHERE pidm=?", array($pidm));
 
-	if (isset($result[0])){
-		$result1 = PSU::db('hr')->Execute("UPDATE training_tracker_checklist_meta SET checkboxes = ? WHERE wpid = ?", array($checked, $wpid));
-		// if person has a db entry already	
+	//check to see if checkbox exists
+	$does_exist = PSU::db('hr')->GetOne("SELECT item_id from person_checklist_items WHERE item_id=?", array($checked_id));
+	
+	if (!$does_exist){
+		$inserted = PSU::db('hr')->Execute("INSERT INTO person_checklist_items (item_id, checklist_id, responce, updated_by) VALUES (?,?,?,?)",array($checked_id, $checklist_id, $responce, $_SESSION['pidm']));
 	}
 	else{
-		$result2 = PSU::db('hr')->Execute("INSERT INTO training_tracker_checklist_meta (checkboxes, wpid, id) VALUES (?, ?, ?)",array($checked, $wpid, $id));
-		//if they don't, make them one
+		$update = PSU::db('hr')->Execute("UPDATE person_checklist_items SET responce = ? WHERE pidm = ?", array($responce, $pidm));
 	}
-
 	//update the person who modified this page
-	$result3 = PSU::db('hr')->Execute("UPDATE training_tracker_checklist_meta SET modified_by = ? WHERE wpid = ?", array($modified_by, $wpid));
+	$updated_by = PSU::db('hr')->Execute("UPDATE person_checklist_items SET updated_by = ? WHERE pidm = ?", array($modified_by, $pidm));
 
 
 });
