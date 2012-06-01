@@ -24,20 +24,33 @@
 		background: #CCC;
 		color: #222;
 		font-weight: bold;
+		background: #CCC url(/webapp/training-tracker/includes/header.png) 50% 50% repeat-x;
 	}
 	.dark {
 		border: 1px solid #AAA;
-		background: #DDD;
+		background: #666;
 		color: #222;
 		font-weight: bold;
+		background: #CCC url(/webapp/training-tracker/includes/header.png) 50% 50% repeat-x;
 	}
 	.ui-accordion-content{
 		box-sizing: content-box;
 	}
 	#toolbar {
+		background: #CCC url(/webapp/training-tracker/includes/header.png) 50% 50% repeat-x;
 		padding: 5px 4px;
 	}
 	#accordion{
 		box-sizing: content-box;
 	}
+	#progressbar{
+		background: #99FF99
 
+	}
+	.ui-progressbar-value{
+		background: #9F9;
+  }
+	#dialog-confirm{
+		display: none;
+	}
+	

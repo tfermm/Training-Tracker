@@ -1,31 +1,22 @@
-<script>
+<script> //setting global javascript variables
 	current_user_wpid = "{$current_user.wpid}";
 	active_user_wpid = "{$active_user.wpid}";
 	current_user_level = "{$current_user_level}";
 	checkboxData = "{$checked}";
- </script>
+</script>
 
 <script src="/webapp/training-tracker/templates/js/checklist.js"></script>
 
-<div id="headder">
-	<div id="toolbar" class="ui-widget-header ui-corner-all">
-  	<button id="team_builder">Team builder</button>
-		<button id="view_teams">View teams</button>
-		<button id="cklist">Person select</button>
-	</div>
-</div>
-<br>
-
 {box title=$title}
-<br><br>
-<div id = "outer-accordion"> {* This is the outer accordian that shows the level ie trainee *}
+<br>
 {foreach from=$checklist_item_cat item=category}
-	<h2><a href="#">{$category.name}</a></h2>
+	<h3>{$category.name}</h3>
+	<br>
 	<div id="accordion"> 
 		{foreach from=$checklist_item_sub_cat item=sub_category}
 			{if $sub_category.slug eq $current_user_level}
 			<h3><a href="#">{$sub_category.name}</a></h3>
-			<div id="inner-accordion">
+			<div id="inner-accordion"> {*  foreach category look at each sub category and add every item per sub category *}
 			{foreach from=$checklist_items item=item name=count}
 				{if $item.slug eq $sub_category.sub_category}
 					<input class="chkbox" type="checkbox" id="{$item.slug}{$smarty.foreach.count.iteration}"> {$item.description}<div id ="{$item.slug}{$smarty.foreach.count.iteration}-output"></div>
@@ -36,17 +27,22 @@
 		{/foreach}
 	</div>
 {/foreach}
-</div>
 <div class = "people">
 	<br><br>
-	<textarea class="txtarea" rows="10" cols="40" id="3">{$comments}
+	<textarea class="txtarea" rows="10" cols="40" id="3">{$comments} {* comment section *}
 	</textarea>
 	<div id="3-output"></div>
 	<br />
 	<button class="submitButton">Done</button>
-	{if ($active_user_level eq 'supervisor' || $active_user_level eq 'shift_leader' || $active_user_level eq 'manager' || $active_user_level eq 'webguru')}
-		<br><br>Pressing the confirm button will send an email to your boss saying {$current_user.name} has completed the tasks above<br>
-		<button class="confirmButton">Confirm</button>
+	 {* check the persons permission level, if they are above a mentee, show the confirm button *}
+	{if $progress eq 100}
+		{if ($active_user_level eq 'supervisor' || $active_user_level eq 'shift_leader' || $active_user_level eq 'manager' || $active_user_level eq 'webguru')}
+			<br><br>Pressing the confirm button will send an email to your boss saying {$current_user.name} has completed the tasks above<br>
+			<button class="confirmButton">Confirm</button>
+			<div id="dialog-confirm" title="Are you sure?" > {* Used by the confirm popup *}
+				<span class="popup_text">Are you sure you want to confirm {$current_user.name}'s completion of the tasks listed above?</span>
+			</div>
+		{/if}
 	{/if}
 </div>
 {/box}

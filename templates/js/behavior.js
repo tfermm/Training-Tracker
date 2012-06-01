@@ -52,7 +52,7 @@ $(function() {
 		});
 	}); 				
 
-
+/*
 $(document).ready(function() { 
 		
 		$( ".confirmButton" ).button();
@@ -109,9 +109,7 @@ $(document).ready(function() {
 			url: "/webapp/training-tracker/checklist_post_comments",
 			data: { data: postData }
 		});
-		var target = "#" + e.target.id + "-output";
 
-		$(target).text("last edited by: {$active_user.name} on:{$smarty.now|date_format:"%D"}");
 	}
 
 	function outputDataCheck(e){
@@ -163,4 +161,4 @@ $(document).ready(function() {
 			data: { data: postData }
 		});	
 
-	}
+	} */

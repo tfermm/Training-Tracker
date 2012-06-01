@@ -15,7 +15,6 @@ function contains($teams, $wpid){
 
 
 
-//join with phonebook.phonebook where username = email
 //sort users
 function sort_users($filter){
 	$client = \PSU::api('backend'); //load API
@@ -70,4 +69,118 @@ function get_checklist_sub_cat($category){
 }
 
 
+function get_stats($wpid){
+	$checkboxes = PSU::db('hr')->GetAll("SELECT * FROM training_tracker_checklist_meta WHERE wpid=?",array($wpid));	
 
+	$current_level = $checkboxes[0]['current_level'];
+	$checked = $checkboxes[0]['checkboxes'];
+	$completed = sizeof(explode(",",$checked)); 
+
+	if (strcmp($current_level, 'trainee')==0){
+		$search = array("a","b","c","d");
+		if (strlen($checked) < 2){
+			$progress = 0;
+		}
+		else{
+			$progress = round((($completed/27)*100), 2);
+		}
+	}
+	else if (strcmp($current_level,'sta')==0){
+		$search = array("e","f","g","h","i","j","k","l");
+		if ($completed >= 32){
+					$progress = 100;
+				}
+				else if (strlen($checked) < 2){
+					$progress = 0;
+				}
+				else{
+					$progress = round((($completed/32)*100), 2);
+				}
+	}
+	else{
+		$search = array("m","n","o","p","q","r");
+		if (strlen($checked) < 2){
+			$progress = 0;
+		}
+		else{
+			$progress = round((($completed/20)*100), 2);
+		}	
+	}
+	$stats = array();
+	foreach ($search as $item){
+		$stat = substr_count($checked, "$item");
+		if (strcmp($item,"a")==0){
+			$stat = $stat/5;
+		}
+		else if (strcmp($item,"b")==0){
+			$stat = $stat/9;
+		}
+		else if (strcmp($item,"c")==0){
+			$stat = $stat/8;
+		}
+		else if (strcmp($item,"d")==0){
+			$stat = $stat/5;
+		}
+		else if (strcmp($item,"e")==0){
+			$stat = $stat/6;
+		}
+		else if (strcmp($item,"f")==0){
+			$stat = $stat/4;
+		}
+		else if (strcmp($item,"g")==0){
+			$stat = $stat/8;
+		}
+		else if (strcmp($item,"h")==0){
+			$stat = $stat/3;
+		}
+		else if (strcmp($item,"i")==0){
+			if ($stat > 2){
+				$stat = 2;
+			}
+			$stat = $stat/2;
+		}
+		else if (strcmp($item,"j")==0){
+			$stat = $stat/4;
+		}
+		else if (strcmp($item,"k")==0){
+			if ($stat  > 1){
+				$stat = 1;
+			}
+		}
+		else if (strcmp($item,"l")==0){
+			$stat = $stat/4;
+		}
+		else if (strcmp($item,"m")==0){
+			$stat = $stat/5;
+		}
+		else if (strcmp($item,"n")==0){
+			$stat = $stat/3;
+		}
+		else if (strcmp($item,"o")==0){
+			$stat = $stat/2;
+		}
+		else if (strcmp($item,"p")==0){
+			$stat = $stat/2;
+		}
+		else if (strcmp($item,"q")==0){
+			$stat = $stat/4;
+		}
+		else if (strcmp($item,"r")==0){
+			$stat = $stat/4;
+		}
+		
+		$stats["$item"] = round(($stat*100), 2);
+	}
+
+	$total = 0;
+	$ct = 0;
+	foreach ($stats as $statistic){
+		$ct++;
+		$total += ($statistic);
+	}
+	$progress = round(($total/$ct), 2);
+
+	$stats['progress'] = $progress;
+
+	return $stats;
+}
