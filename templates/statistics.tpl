@@ -1,0 +1,65 @@
+<link rel="stylesheet" href="/webapp/training-tracker/templates/css/stats.css" type="text/css" />
+
+<script> //setting global javascript variables
+	current_user_wpid = "{$current_user.wpid}";
+	active_user_wpid = "{$active_user.wpid}";
+	current_user_level = "{$current_user_level}";
+	checkboxData = "{$checked}";
+</script>
+
+<script src="/webapp/training-tracker/templates/js/statistics.js"></script>
+
+<script>{*setting up progressbars*}
+	$(document).ready(function(){
+		$("#overall").progressbar("option","value",{$progress});
+		{foreach from=$checklist_item_sub_cat item=sub_category}
+			$("#{$sub_category.sub_category}").progressbar("option","value",{$sub_category.stat});
+		{/foreach}
+	});
+</script>
+
+{box title=$title}
+<br>
+{* This is the outer accordian that shows the level ie trainee *}
+{foreach from=$checklist_item_cat item=category}
+	<h3>{$category.name}</h3><br>
+	Overall progress: {$progress}%
+	<div id="overall" class="progressbar"></div>
+	<br>
+
+	<div id="accordion"> 
+		{foreach from=$checklist_item_sub_cat item=sub_category}
+			{if $sub_category.slug eq $current_user_level}
+			<h3><a href="#">{$sub_category.name} progress: {$sub_category.stat}%<div id="{$sub_category.sub_category}" class="progressbar"></div></a></h3>
+			<div id="inner-accordion"> {*  foreach category look at each sub category and add every item per sub category *}
+			{foreach from=$checklist_items item=item name=count}
+				{if $item.slug eq $sub_category.sub_category}
+					<input class="chkbox" type="checkbox" id="{$item.slug}{$smarty.foreach.count.iteration}"> {$item.description}<div id ="{$item.slug}{$smarty.foreach.count.iteration}-output"></div>
+				{/if}
+			{/foreach}
+			</div>
+			{/if}
+		{/foreach}
+	</div>
+{/foreach}
+
+<div class = "people">
+	<br><br>
+	<textarea class="txtarea" rows="10" cols="40" id="3">{$comments} {* comment section *}
+	</textarea>
+	<div id="3-output"></div>
+	<br />
+	<button class="submitButton">Done</button>
+	 {* check the persons permission level, if they are above a mentee, show the confirm button *}
+	{if $progress eq 100}
+		{if ($active_user_level eq 'supervisor' || $active_user_level eq 'shift_leader' || $active_user_level eq 'manager' || $active_user_level eq 'webguru')}
+			<br><br>Pressing the confirm button will send an email to your boss saying {$current_user.name} has completed the tasks above<br>
+			<button class="confirmButton">Confirm</button>
+			<div id="dialog-confirm" title="Are you sure?" > {* Used by the confirm popup *}
+				<span class="popup_text">Are you sure you want to confirm {$current_user.name}'s completion of the tasks listed above?</span>
+			</div>
+		{/if}
+	{/if}
+</div>
+{/box}
+
