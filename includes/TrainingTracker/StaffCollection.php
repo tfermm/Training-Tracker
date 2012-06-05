@@ -192,7 +192,7 @@ class StaffCollection extends \PSU\Collection {
 		foreach($mentors_array as &$staff){
 			
 			$stats = get_stats($staff['wpid']);
-			$staff['percent'] = $stats['progress'];
+			$staff['progress'] = $stats['progress'];
 		}
 
 		//print_r($mentors_array);

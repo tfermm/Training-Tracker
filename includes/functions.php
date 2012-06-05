@@ -36,138 +36,155 @@ function sort_users($filter){
 
 
 //get item categories
-function get_checklist_item_categories($slug){
-	$result = PSU::db('hr')->GetAll("SELECT * 
-						FROM  `checklist_item_categories` 
-						WHERE slug = ?", array($slug));
+function get_checklist_item_categories($current_user_level){
+	if ($current_user_level == 'trainee'){
+		$type = "training-tracker-trainee";
+	}
+	else if ($current_user_level == 'sta'){
+		$type = "training-tracker-consultant";
+	}
+	else if ($current_user_level == 'shift_leader'){
+		$type = "training-tracker-senior-consultant";
+	}
+	$result = PSU::db('hr')->GetAll("SELECT * FROM checklist WHERE type=?", array($type));
 	return $result;
 }
 
 
 function get_checklist_items($current_user_level){
+
 	if ($current_user_level == 'trainee'){
-		$cat_ID = 11;
+		$type = "training-tracker-trainee";
 	}
 	else if ($current_user_level == 'sta'){
-		$cat_ID = 12;
+		$type = "training-tracker-consultant";
 	}
 	else if ($current_user_level == 'shift_leader'){
-		$cat_ID = 13;
+		$type = "training-tracker-senior-consultant";
 	}
-	else if ($current_user_level == 'supervisor'){
-		$cat_ID = 14;
-	}
-	$result = PSU::db('hr')->GetAll("SELECT * FROM checklist_items WHERE category_id = ?", array($cat_ID));
+	$result = PSU::db('hr')->GetAll("SELECT items.* FROM checklist_items items 
+																						JOIN checklist_item_categories categories 
+																						ON items.category_id = categories.id 
+																						WHERE categories.type=?", array($type));
 	return $result;
 }
 
 
-function get_checklist_sub_cat($category){
-//	\PSU::db('hr')->debug=true;
-	$result = PSU::db('hr')->GetAll("SELECT * FROM checklist_item_sub_categories WHERE slug = ?", array($category));
+function get_checklist_sub_cat($current_user_level){
+//	PSU::db('hr')->debug=true;
+	if ($current_user_level == 'trainee'){
+		$type = "training-tracker-trainee";
+	}
+	else if ($current_user_level == 'sta'){
+		$type = "training-tracker-consultant";
+	}
+	else if ($current_user_level == 'shift_leader'){
+		$type = "training-tracker-senior-consultant";
+	}
+	$result = PSU::db('hr')->GetAll("SELECT * FROM checklist_item_categories WHERE type=?", array($type));
 	return $result;
 }
 
 
 function get_stats($wpid){
-	$checkboxes = PSU::db('hr')->GetAll("SELECT * FROM training_tracker_checklist_meta WHERE wpid=?",array($wpid));	
 
-	$current_level = $checkboxes[0]['current_level'];
-	$checked = $checkboxes[0]['checkboxes'];
-	$completed = sizeof(explode(",",$checked)); 
+	$person = PSUPerson::get($wpid);
+	$pidm = $person->pidm;
+	$username = $person->username;
+
+	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=?",array($pidm));	
+
+	$checkboxes = PSU::db('hr')->GetAll("SELECT * FROM person_checklist_items WHERE checklist_id=? AND response=?", array($checklist_id, "complete"));
+
+	$current_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?", array($username));
+	$completed = sizeof($checkboxes); 
+
 
 	if (strcmp($current_level, 'trainee')==0){
-		$search = array("a","b","c","d");
-		if (strlen($checked) < 2){
-			$progress = 0;
-		}
-		else{
-			$progress = round((($completed/27)*100), 2);
-		}
+		$search = array("16","17","18","19");
 	}
 	else if (strcmp($current_level,'sta')==0){
-		$search = array("e","f","g","h","i","j","k","l");
-		if ($completed >= 32){
-					$progress = 100;
-				}
-				else if (strlen($checked) < 2){
-					$progress = 0;
-				}
-				else{
-					$progress = round((($completed/32)*100), 2);
-				}
+		$search = array("20","21","22","23","24","25","26","27");
 	}
 	else{
-		$search = array("m","n","o","p","q","r");
-		if (strlen($checked) < 2){
-			$progress = 0;
-		}
-		else{
-			$progress = round((($completed/20)*100), 2);
-		}	
+		$search = array("28","29","30","31","32","33");
 	}
 	$stats = array();
 	foreach ($search as $item){
-		$stat = substr_count($checked, "$item");
-		if (strcmp($item,"a")==0){
+
+	$stat = PSU::db('hr')->GetAll("SELECT items.item_id	FROM person_checklist_items items 
+																											 JOIN person_checklists checklist 
+																											 ON items.checklist_id = checklist.id 
+																											 JOIN checklist_item_categories categories 
+																											 ON categories.type = checklist.type
+																											 JOIN checklist_items checklist_items
+																											 ON checklist_items.id = items.item_id
+																											 WHERE items.checklist_id = checklist.id 
+																											 AND checklist.type = categories.type
+																											 AND categories.id=?
+																											 AND items.response=?
+																											 AND checklist_items.category_id = categories.id
+																											 AND checklist.pidm=?", array($item,"complete", $pidm)); 
+		$stat = sizeof($stat);
+		if ($item == 16){
 			$stat = $stat/5;
 		}
-		else if (strcmp($item,"b")==0){
+		else if ($item == 17){
 			$stat = $stat/9;
 		}
-		else if (strcmp($item,"c")==0){
+		else if ($item == 18){
 			$stat = $stat/8;
 		}
-		else if (strcmp($item,"d")==0){
+		else if ($item == 19){
 			$stat = $stat/5;
 		}
-		else if (strcmp($item,"e")==0){
+		else if ($item == 20){
 			$stat = $stat/6;
 		}
-		else if (strcmp($item,"f")==0){
+		else if ($item == 21){
 			$stat = $stat/4;
 		}
-		else if (strcmp($item,"g")==0){
+		else if ($item == 22){
 			$stat = $stat/8;
 		}
-		else if (strcmp($item,"h")==0){
+		else if ($item == 23){
 			$stat = $stat/3;
 		}
-		else if (strcmp($item,"i")==0){
+		else if ($item == 24){
 			if ($stat > 2){
 				$stat = 2;
 			}
 			$stat = $stat/2;
 		}
-		else if (strcmp($item,"j")==0){
+		else if ($item == 25){
 			$stat = $stat/4;
 		}
-		else if (strcmp($item,"k")==0){
+		else if ($item == 26){
 			if ($stat  > 1){
 				$stat = 1;
 			}
 		}
-		else if (strcmp($item,"l")==0){
+		else if ($item == 27){
 			$stat = $stat/4;
 		}
-		else if (strcmp($item,"m")==0){
+		else if ($item == 28){
 			$stat = $stat/5;
 		}
-		else if (strcmp($item,"n")==0){
+		else if ($item == 29){
 			$stat = $stat/3;
 		}
-		else if (strcmp($item,"o")==0){
+		else if ($item == 30){
 			$stat = $stat/2;
 		}
-		else if (strcmp($item,"p")==0){
+		else if ($item == 31){
 			$stat = $stat/2;
 		}
-		else if (strcmp($item,"q")==0){
+		else if ($item == 32){
 			$stat = $stat/4;
 		}
-		else if (strcmp($item,"r")==0){
+		else if ($item == 33){
 			$stat = $stat/4;
-		}
+		} 
 		
 		$stats["$item"] = round(($stat*100), 2);
 	}
@@ -182,5 +199,7 @@ function get_stats($wpid){
 
 	$stats['progress'] = $progress;
 
+	//PSU::dbug($stats);
+	//die();
 	return $stats;
 }

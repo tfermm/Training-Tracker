@@ -2,7 +2,11 @@
 	current_user_wpid = "{$current_user.wpid}";
 	active_user_wpid = "{$active_user.wpid}";
 	current_user_level = "{$current_user_level}";
-	checkboxData = "{$checked}";
+	checkboxData = Array();
+	{foreach from=$checked item=checkbox name=ct}
+		checkboxData[{$checkbox}] = "{$checkbox}"; 
+	{/foreach}
+	
 </script>
 
 <script src="/webapp/training-tracker/templates/js/checklist.js"></script>
@@ -14,22 +18,21 @@
 	<br>
 	<div id="accordion"> 
 		{foreach from=$checklist_item_sub_cat item=sub_category}
-			{if $sub_category.slug eq $current_user_level}
 			<h3><a href="#">{$sub_category.name}</a></h3>
 			<div id="inner-accordion"> {*  foreach category look at each sub category and add every item per sub category *}
-			{foreach from=$checklist_items item=item name=count}
-				{if $item.slug eq $sub_category.sub_category}
-					<input class="chkbox" type="checkbox" id="{$item.slug}{$smarty.foreach.count.iteration}"> {$item.description}<div id ="{$item.slug}{$smarty.foreach.count.iteration}-output"></div>
+			{foreach from=$checklist_items item=item}
+				{if $item.category_id eq $sub_category.id}
+					<input class="chkbox" type="checkbox" id="{$item.id}"> {$item.description}<br>
 				{/if}
 			{/foreach}
 			</div>
-			{/if}
 		{/foreach}
 	</div>
 {/foreach}
 <div class = "people">
 	<br><br>
-	<textarea class="txtarea" rows="10" cols="40" id="3">{$comments} {* comment section *}
+	<!-- Bond, James Bond -->
+	<textarea class="txtarea" rows="10" cols="40" id="007">{$comments} {* comment section *}
 	</textarea>
 	<div id="3-output"></div>
 	<br />
@@ -46,5 +49,5 @@
 	{/if}
 </div>
 {/box}
-{* {$mentee1|@debug_print_var} *}
+{* {$checked|@debug_print_var} *}
 

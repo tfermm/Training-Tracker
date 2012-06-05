@@ -3,7 +3,7 @@ var mentor_string = "{$mentor_string}";
 </script>
 <script src="templates/js/behavior.js"></script>
 
-{box}
+{box title="Team builder"}
 <div id="tabs">
 	<ul>
 		<li><a href="#mentee-1">Mentee</a></li>

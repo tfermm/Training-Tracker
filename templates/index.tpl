@@ -9,26 +9,19 @@
 	$(document).ready(function() {
 		{if $is_mentor}
 			{foreach from=$staff  item=staffer name=count}
-				$("#{$staffer.wpid}").progressbar("option","value",{$staffer.percent});
+				$("#{$staffer.wpid}").progressbar("option","value",{$staffer.progress});
 			{/foreach}
 		{else}
-				$("#{$current_user.wpid}").progressbar("option","value",{$current_user.percent});
+				$("#{$current_user.wpid}").progressbar("option","value",{$current_user.progress});
 		{/if}
 	});
 </script>
 
 {if $is_mentor}
-	{foreach from=$staff  item=staffer name=count}
-		{if $smarty.foreach.count.iteration is even}
+	{foreach from=$staff  item=staffer }
 			<div id="toolbar" class="light ui-corner-all">
 				<a href="checklist/{$staffer.wpid}">View/edit {$staffer.name}</a> <a href="statistics/{$staffer.wpid}"><div id="{$staffer.wpid}" class="progressbar"></div></a>
 			</div>
-		{else}
-			<div id="toolbar" class="dark ui-corner-all">
-				<a href="checklist/{$staffer.wpid}">View/edit {$staffer.name}</a> <a href="statistics/{$staffer.wpid}"><div id="{$staffer.wpid}" class="progressbar"></div></a>
-			</div>
-		{/if}
-
 	{/foreach}
 {else}
 	<div id="toolbar" class="light ui-corner-all">

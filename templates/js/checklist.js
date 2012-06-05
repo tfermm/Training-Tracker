@@ -38,10 +38,7 @@ $(document).ready(function() {
 			//get the contents of the checkbox
 			postData[0] = $(".txtarea").val();
 			//the checked checkboxes
-			postData[1] = checkboxData;
-			postData[2] = current_user_wpid;
-			postData[3] = active_user_wpid;
-			postData[4] = current_user_level;
+			postData[1] = current_user_wpid;
 
 			//append the valuse to the data base
 			$.ajax({
@@ -57,14 +54,13 @@ $(document).ready(function() {
 		$(".txtarea").on('keyup',outputData);
 
 		//split the checked string, which is the checked checkboxes stored by id,id,id... etc
-		var checked = checkboxData.split(",");
-		for (var i in checked){
-			$("#"+checked[i]).prop("checked", true);  //sets all previously checked checkboxes to checked.
+		for (var i in checkboxData){
+			$("#"+i).prop("checked", true);  //sets all previously checked checkboxes to checked.
 		}
 
 		$("#accordion").accordion();
 		$("#outer-accordion").accordion();
-		
+		$(".progressbar").progressbar({});	
 	});
 
 
@@ -83,25 +79,22 @@ $(document).ready(function() {
 	}
 
 	function outputDataCheck(e){
-		
 
 		var postData = new Array();
-		//building a string to store the checked checkboxes, the id's are seperated by a ","
 
 		//if it checkbox you clicked was just checked.
 		if (e.target.checked){
 			//pass complete
-			var responce = "complete"
+			var response = "complete"
 		}else{
 			//pass n/a	
-			var responce = "n/a"
+			var response = "incomplete"
 		}
 		//active user is the person looking at the page
 		//current user is the person they are looking at
-
 		postData[0]=e.target.id; //id of the checkbox
 		postData[1]=current_user_wpid;
-		postData[2]=responce;
+		postData[2]=response;
 		$.ajax({
 			type: "POST",
 			url: "/webapp/training-tracker/checklist_post_chkbox",
