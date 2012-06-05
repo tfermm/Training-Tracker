@@ -9,10 +9,10 @@
 	$(document).ready(function() {
 		{if $is_mentor}
 			{foreach from=$staff  item=staffer name=count}
-				$("#{$staffer.wpid}").progressbar("option","value",{$staffer.progress});
+				$("#{$staffer->wpid}").progressbar("option","value",{$staffer->stats("progress")});
 			{/foreach}
 		{else}
-				$("#{$current_user.wpid}").progressbar("option","value",{$current_user.progress});
+				$("#{$current_user->person()->wpid}").progressbar("option","value",{$current_user->stats("progress")});
 		{/if}
 	});
 </script>
@@ -20,12 +20,12 @@
 {if $is_mentor}
 	{foreach from=$staff  item=staffer }
 			<div id="toolbar" class="light ui-corner-all">
-				<a href="checklist/{$staffer.wpid}">View/edit {$staffer.name}</a> <a href="statistics/{$staffer.wpid}"><div id="{$staffer.wpid}" class="progressbar"></div></a>
+				<a href="checklist/{$staffer->wpid}">View/edit {$staffer->name}</a> <a href="statistics/{$staffer->wpid}"><div id="{$staffer->wpid}" class="progressbar"></div></a>
 			</div>
 	{/foreach}
 {else}
 	<div id="toolbar" class="light ui-corner-all">
-		<a href="checklist/{$current_user.wpid}">View/edit {$current_user.name}</a> <a href="statistics/{$current_user.wpid}"><div id="{$current_user.wpid}" class="progressbar">{* <span class="progressbar_text">Statisticial view/edit for {$current_user.name}</span> *}</div></a>
+		<a href="checklist/{$current_user->person()->wpid}">View/edit {$current_user->name}</a> <a href="statistics/{$current_user->person->wpid}"><div id="{$current_user->person()->wpid}" class="progressbar">{* <span class="progressbar_text">Statisticial view/edit for {$current_user->person()->wpid}</span> *}</div></a>
 	</div>
 {/if}
 {/box}

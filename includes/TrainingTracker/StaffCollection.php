@@ -20,17 +20,18 @@ class StaffCollection extends \PSU\Collection {
 	}//end get
 
 
-	public function mentees_filter($it = null){
+	//mentees. selects the trainee and sta permission from callog
+	public function mentees($it = null){
 		if ( ! $it ){
 			$it = $this->getIterator();
 		}//end if
 
 		return new Staff_MenteeFilterIterator( $it );
 
-	}//end mentees_filter
+	}//end mentees
 
-
-	public function valid_filter($it = null){
+//valid users have callog permissions and are active
+	public function valid_users($it = null){
 		if ( ! $it ){
 			$it = $this->getIterator();
 		}//end if
@@ -39,26 +40,34 @@ class StaffCollection extends \PSU\Collection {
 
 	}//end staff_filter
 
-	public function admins_filter($it = null){
+	//filter for admins, people with jr. shift supervisors or greater
+	public function admins($it = null){
 		if ( ! $it ){
 			$it = $this->getIterator();
 		}//end if
 
 		return new admin_FilterIterator( $it );
 
-	}//end staff_filter
+	}//end staff
 
-	public function staff_filter($it = null){
+	//filter for trainee, sta and shift_leader callog permissions
+	public function staff($it = null){
 		if ( ! $it ){
 			$it = $this->getIterator();
 		}//end if
 
 		return new Staff_FilterIterator( $it );
 
-	}//end staff_filter
+	}//end staff
 	
 
-	public function mentees(){
+public function mentors($it = null){
+		if ( ! $it ){
+			$it = $this->getIterator();
+		}//end if
+		return new Staff_MentorFilterIterator( $it );
+}//end mentors
+/*	public function mentees(){
 		$users = new StaffCollection();
 		$ct = 0;
 
@@ -72,64 +81,9 @@ class StaffCollection extends \PSU\Collection {
 
 		return $mentees_array;
 
-	}//end mentees_filter
+}//end mentees_filter */
 
-
-	//populate meta, used to populate the wpid and current level (trainee, consultant, etc..)
-	public function populate_meta(){
-		
-		$users = new StaffCollection();
-		$ct=0;
-		foreach( $users->staff_filter() as $i){
-			$staff_array[$ct]['username'] = $i->username;
-			$staff_array[$ct]['privileges'] = $i->privileges;
-			$staff_array[$ct]['wpid'] = $i->wpid;
-			$staff_array[$ct]['name'] = $i->name;
-			$ct++;
-		}
-
-		foreach ($staff_array as $i){
-		//check to see if they exist, if not add them to training_tracker_checklist_meta database table
-
-
-		  //making my own auto increment field
-		  $row = \PSU::db('hr')->GetOne("SELECT MAX(id) FROM training_tracker_checklist_meta");
-		  $row +=1;
-			$id = $row;		
-
-			$result = \PSU::db('hr')->GetOne("SELECT * from training_tracker_checklist_meta where wpid=?",array($i['wpid']));
-			
-			if (isset($result[1])){
-				//if thir wpid exists update their current level
-				$result2 = \PSU::db('hr')->Execute("UPDATE training_tracker_checklist_meta SET current_level=? where wpid=?",array($i['privileges'], $i['wpid']));
-			}else{
-				//if they don't exist add them.
-				$result3 = \PSU::db('hr')->Execute("INSERT INTO training_tracker_checklist_meta (wpid,current_level,id) VALUES (?,?,?)",array($i['wpid'],$i['privileges'],$id));
-			}
-			
-		}
-		
-	//clearing out old meta data, that is unneeded	
-		$staff = $users->valid_users();
-
-		$meta_data = \PSU::db('hr')->GetAll("SELECT * FROM training_tracker_checklist_meta");
-		$is_helpdesk = false;
-
-		foreach($meta_data as $data){
-			$is_helpdesk = false;
-			foreach ($staff as $person){
-				if ($person['wpid'] == $data['wpid']){
-					$is_helpdesk = true;
-				}
-			}
-			if (!$is_helpdesk){
-				$result = \PSU::db('hr')->Execute("DELETE FROM training_tracker_checklist_meta WHERE wpid=?", array($data['wpid']));
-			}
-		}
-	return true;	
-	}//end populate meta
-
-	public function mentors(){
+/*	public function mentors(){
 		$users = new StaffCollection();
 		$ct = 0;
 
@@ -143,9 +97,9 @@ class StaffCollection extends \PSU\Collection {
 
 		return $mentors_array;
 
-	}//end mentees
+}//end mentors */
 
-	public function admins(){
+/*	public function admins(){
 		$users = new StaffCollection();
 		$ct = 0;
 
@@ -159,9 +113,9 @@ class StaffCollection extends \PSU\Collection {
 
 		return $mentors_array;
 
-	}//end mentees
+}//end mentees */
 
-
+/*
 	public function valid_users(){ //All the people that work at the help desk
 		$users = new StaffCollection();
 		$ct = 0;
@@ -175,9 +129,9 @@ class StaffCollection extends \PSU\Collection {
 		}//end foreach
 		return $mentors_array;
 	}
+ */
 
-
-	public function staff(){ //everybody minus jr. shift supervisors.
+/*	public function staff(){ //everybody minus jr. shift supervisors.
 		$users = new StaffCollection();
 		$ct = 0;
 
@@ -199,18 +153,9 @@ class StaffCollection extends \PSU\Collection {
 		//die();
 		return $mentors_array;
 
-	}//end staff
+}//end staff */
 
-	public function mentors_filter($it = null){
-		if ( ! $it ){
-			$it = $this->getIterator();
-		}//end if
-
-		return new Staff_MentorFilterIterator( $it );
-
-	}//end mentors_filter
-
-
+	
 }//end function
 
 class admin_FilterIterator extends \PSU_FilterIterator {

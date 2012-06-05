@@ -43,9 +43,9 @@ respond( function( $request, $response, $app ) {
 	$staff_collection->load(); 
 
 	$teams_data = PSU::db('hr')->GetAll("SELECT * FROM teams WHERE mentor=?", array($wpid));
-	$has_team=false;
+	$has_team = false;
 	if (isset($teams_data[0])){
-		$has_team=true;
+		$has_team = true;
 	}
 
 	$valid_users = $staff_collection->valid_users();
@@ -57,20 +57,20 @@ respond( function( $request, $response, $app ) {
 	$is_admin = false;
 
 	foreach ($admin as $teacher){
-		if ($wpid == $teacher['wpid']){
+		if ($wpid == $teacher->wpid){
 			$is_admin = true;
 			$is_mentor = true;
 		}
 	}
+
 	foreach ($mentor as $teacher){
-		if ($wpid == $teacher['wpid']){
+		if ($wpid == $teacher->wpid){
 			$is_mentor = true;
 		}
 	}
 
-
 	foreach ($valid_users as $user){
-		if ($wpid == $user['wpid']){
+		if ($wpid == $user->wpid){
 			$is_valid = true;
 		}
 	}	
@@ -79,6 +79,7 @@ respond( function( $request, $response, $app ) {
 		die("You do not have access to this application.");
 	}
 
+	$app->is_admin = $is_admin;
 	// initialize the template
 	$app->tpl = new PSUTemplate;
 	// get the logged in user
@@ -94,27 +95,28 @@ respond( function( $request, $response, $app ) {
 // the person select page
 respond( '/?', function( $request, $response, $app ) {
 	$wpid = $_SESSION['wp_id'];
-	$current_user['name'] = PSUPerson::get($wpid)->formatname("f l");
-	$current_user['wpid'] = $wpid;
+	//TODO use PSUPerson insted of what i'm using
 
+	$current_user_parameters["wpid"] = $wpid;
+	$current_user = new TrainingTracker\Staff($current_user_parameters);
 	$staff_collection = new TrainingTracker\StaffCollection();
 	$staff_collection->load(); 
 
 	$staff = $staff_collection->staff();
 	foreach ($staff as $person){
-		$pidm = PSU::get('idmobject')->getidentifier($person['wpid'], 'wp_id', 'pidm');
+		$pidm = $person->person()->pidm;
 		$result = PSU::db('hr')->GetOne("SELECT PIDM FROM person_checklists WHERE PIDM=? AND closed=?", array($pidm, 0));
 		if (!$result){
-			$type = PSU::db('hr')->GetOne("SELECT type FROM checklist WHERE slug=?",array($person['privileges']));
+			$type = PSU::db('hr')->GetOne("SELECT type FROM checklist WHERE slug=?",array($person->privileges));
 			$inserted = PSU::db('hr')->Execute("INSERT INTO person_checklists (type, PIDM, closed) VALUES (?, ?, ?)", array($type, $pidm, 0));
-			PSU::dbug($pidm);
+			//PSU::dbug($pidm);
 		}
 	}
 
 	if (!$is_admin){
 		foreach ($staff as $person){
-			if ($person['wpid'] == $current_user['wpid']){
-				$current_user['percent'] = $person['percent'];		
+			if ($person->wpid == $current_user->wpid){//TODO change current_user to PSUPerson object
+				$current_user->percent = $person->percent;//todo reference person->stats()		
 			}
 		}
 	}
@@ -128,58 +130,39 @@ respond( '/?', function( $request, $response, $app ) {
 //teams creation page
 respond( '/teams', function( $request, $response, $app ) {
 
-	$wpid = $_SESSION['wp_id'];
+	$wpid = $app->user->wpid;//TODO change to global
 
 	$staff_collection = new TrainingTracker\StaffCollection();
-	$staff_collection->load(); 
+	$staff_collection->load();//TODO fix this like the staff section 
 
-	$admin = $staff_collection->admins();
-	$is_admin = false;
-	foreach ($admin as $teacher){
-		if ($wpid == $teacher['wpid']){
-			$is_admin = true;
-			$is_mentor = true;
-		}
-	}
-
-	if (!$is_admin){
+	if (!$app->is_admin){
 		die("You do not have access to this page.");
 	}
 	//getting all the mentors and mentees at the help desk.
-	$staff_collection = new TrainingTracker\StaffCollection();
-	$staff_collection->load(); 
-	$mentor = $staff_collection->mentors();
-	$mentee = $staff_collection->mentees();
+	$mentors = $staff_collection->mentors();//TODO make $mentor plural
+	$mentees = $staff_collection->mentees();
 
 	//check to see if the mentors have a team. Are they mentoring anybody at the moment.
-	foreach ($mentor as &$teacher){ 
-		$team = PSU::db('hr')->GetRow("SELECT * FROM teams WHERE mentor = ?", array($wpid));
-
-		if ($team){//if team
-			$teacher['team'] = true;
-		}
-		else{
-			$student['team'] = false;
-		}
+	foreach ($mentors as $mentor){ 
+		$mentor->team = (boolean)PSU::db('hr')->GetOne("SELECT 1 FROM teams WHERE mentor = ?", array($wpid));
 	}
 	
 	//check to see if the mentee has a team
-	foreach ($mentee as &$student){
-
-		$wpid = $student['wpid'];
+	foreach ($mentees as $mentee){
+		$wpid = $student->wpid;
 
 		//if they have a team $team will be true, else it will be false
 		$team = PSU::db('hr')->GetAll("SELECT * FROM teams WHERE mentee = ?", array($wpid));
 
 		//if they have a team set their mentor.
 		if ($team){
-			$student['team'] = true;
-			$student['team_leader'] = $team[0]['mentor'];
+			$mentee->team = true;
+			$mentee->team_leader = $team[0]['mentor'];
 		}
 		else{
 			//if they don't have a team set the team leader to mentee, the default channel for no team.
-			$student['team_leader'] = 'mentee';
-			$student['team'] = false;
+			$mentee->team_leader = 'mentee';
+			$mentee->team = false;
 		}
 	}
 	$count = 0;
@@ -415,6 +398,24 @@ respond( '/viewteams', function( $request, $responce, $app ) {
 	$app->tpl->display('viewteams.tpl');
 });
 
+//admin page
+respond( '/admin', function( $request, $response, $app ) {
+	
+	$staff_collection = new TrainingTracker\StaffCollection();
+	$staff_collection->load(); 
+
+	$staff = $staff_collection->staff();
+
+	//PSU::dbug($staff);
+	//die;
+	$app->tpl->assign('staff', $staff);
+	$app->tpl->display('admin.tpl');
+});
+//admin promote/demote page
+respond( '/admin/promote/[:wpid]?', function( $request, $response, $app ) {
+
+
+});
 //the axax post part for teams
 respond( '/teams_post', function( $request, $responce, $app ) {
 

@@ -6,6 +6,7 @@
 		{/if}
 		{if $is_admin}
 			<li><a href="/webapp/training-tracker/teams">Team builder</a></li>
+			<li><a href="/webapp/training-tracker/admin">admin</a></li>
 		{/if}
 		
 </ul>
