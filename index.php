@@ -41,7 +41,8 @@ respond( function( $request, $response, $app ) {
 
 	$staff_collection = new TrainingTracker\StaffCollection();
 	$staff_collection->load(); 
-
+	//Make me a LLC Manager in callog
+	//$result = PSU::db('calllog')->Execute("UPDATE call_log_employee SET user_privileges = 'manager' WHERE user_name='tlferm'");
 	$teams_data = PSU::db('hr')->GetAll("SELECT * FROM teams WHERE mentor=?", array($wpid));
 	$has_team = false;
 	if (isset($teams_data[0])){
@@ -76,7 +77,7 @@ respond( function( $request, $response, $app ) {
 	}	
 
 	if (!$is_valid){
-		die("You do not have access to this application.");
+		die("You do not have access to this page.");
 	}
 
 	$app->is_admin = $is_admin;
@@ -94,10 +95,11 @@ respond( function( $request, $response, $app ) {
 
 // the person select page
 respond( '/?', function( $request, $response, $app ) {
+
 	$wpid = $_SESSION['wp_id'];
-	//TODO use PSUPerson insted of what i'm using
 
 	$current_user_parameters["wpid"] = $wpid;
+	$current_user_parameters["name"] = PSUPerson::get($wpid)->formatname("f l");
 	$current_user = new TrainingTracker\Staff($current_user_parameters);
 	$staff_collection = new TrainingTracker\StaffCollection();
 	$staff_collection->load(); 
@@ -115,8 +117,8 @@ respond( '/?', function( $request, $response, $app ) {
 
 	if (!$is_admin){
 		foreach ($staff as $person){
-			if ($person->wpid == $current_user->wpid){//TODO change current_user to PSUPerson object
-				$current_user->percent = $person->percent;//todo reference person->stats()		
+			if ($person->wpid == $current_user->wpid){
+				$current_user->progress = $person->progress;
 			}
 		}
 	}
@@ -130,10 +132,10 @@ respond( '/?', function( $request, $response, $app ) {
 //teams creation page
 respond( '/teams', function( $request, $response, $app ) {
 
-	$wpid = $app->user->wpid;//TODO change to global
+	$wpid = $app->user->wpid;
 
 	$staff_collection = new TrainingTracker\StaffCollection();
-	$staff_collection->load();//TODO fix this like the staff section 
+	$staff_collection->load();
 
 	if (!$app->is_admin){
 		die("You do not have access to this page.");
@@ -189,8 +191,8 @@ respond( '/teams', function( $request, $response, $app ) {
 	$app->tpl->assign('mentor_string_li', $mentor_string_li); //assigning php variables to smarty
 	$app->tpl->assign('mentor_string', $mentor_string);
 	$app->tpl->assign('checklist_item_categories', $result);
-	$app->tpl->assign('mentee', $mentee);
-	$app->tpl->assign('mentor', $mentor);
+	$app->tpl->assign('mentees', $mentees);
+	$app->tpl->assign('mentors', $mentors);
 	$app->tpl->display('teams.tpl'); //go go gadget show page
 });
   
@@ -200,21 +202,24 @@ respond( '/checklist/[:wpid]?', function( $request, $responce, $app ) {
 	$active_user['wpid'] = $_SESSION['wp_id'];
 	$active_user['name'] = PSUPerson::get($active_user['wpid'])->formatname("f l");
 	$wpid = $request->wpid;
-	$person = PSUPerson::get($wpid);
-	$current_user['username'] = $person->username;
-	$current_user['name'] = $person->formatname("f l");
-	$current_user['pidm'] = $person->pidm;
-	$current_user['wpid'] = $wpid;
-	$current_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($current_user['username']));
+	$current_user_parameters["wpid"] = $wpid;
+	$current_user_parameters["name"] = PSUPerson::get($wpid)->formatname("f l");
+	$current_user = new TrainingTracker\Staff($current_user_parameters);
+	$current_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($current_user->person()->username));
 	$active_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($_SESSION['username']));
 	
-	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=? AND closed=?", array($current_user['pidm'], "0"));
+	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=? AND closed=?", array($current_user->person()->pidm, "0"));
 
 	if (strlen($checklist_id) > 2){
 		//get the data for which check boxes are checked
-		$checklist_checked = PSU::db('hr')->GetAll("SELECT item_id FROM person_checklist_items WHERE checklist_id=? AND response=?",array($checklist_id, "complete"));
-		
+		$checklist_checked = PSU::db('hr')->GetAll("SELECT * FROM person_checklist_items WHERE checklist_id=? AND response=?",array($checklist_id, "complete"));
+
+		//tooltip is for displaying who last modified an item and when displayed as a tooltip
 		for ($i = 0; $i < sizeof($checklist_checked); $i++){
+			$item_id = $checklist_checked[$i]["item_id"];
+			$tooltip["$item_id"]["item_id"] = $item_id;
+			$tooltip["$item_id"]["updated_by"] = PSUPerson::get($checklist_checked[$i]["updated_by"])->formatname("f l");
+			$tooltip["$item_id"]["updated_time"] = $checklist_checked[$i]["activity_date"];
 			$checklist_checked[$i] = $checklist_checked[$i]["item_id"];
 		}		
 
@@ -225,10 +230,10 @@ respond( '/checklist/[:wpid]?', function( $request, $responce, $app ) {
 
 	//the title is the title name in the box.
 	if (strlen($modified_by)>2){
-		$title = $current_user['name'] . " - Last modified by " . PSUPerson::get($modified_by)->formatname("f l") . " on " . $last_modified[0]['max(activity_date)'];
+		$title = $current_user->name . " - Last modified by " . PSUPerson::get($modified_by)->formatname("f l") . " on " . $last_modified[0]['max(activity_date)'];
 	}
 	else{
-		$title = $current_user['name']; 
+		$title = $current_user->name; 
 	}
 
 	//getting comments from database
@@ -247,10 +252,17 @@ respond( '/checklist/[:wpid]?', function( $request, $responce, $app ) {
 	$checklist_item_sub_cat = get_checklist_sub_cat($current_user_level);
 	$checklist_item_cat = get_checklist_item_categories($current_user_level);
 
-//	PSU::dbug($checklist_items);
-//die();
-	$stats = get_stats($current_user['wpid']);
+	//adding the tooltip data to the checklist_items
+	foreach ($checklist_items as &$checklist_item){
+		$item_id = $checklist_item['id'];
+		$checklist_item['updated_by'] = $tooltip["$item_id"]["updated_by"];
+		$checklist_item['updated_time'] = $tooltip["$item_id"]["updated_time"];
+	}
+
+	$stats = get_stats($current_user->wpid);
 	$progress = $stats['progress'];
+
+	PSU::dbug($current_user);
 
 	$app->tpl->assign('checklist_id', $checklist_id);	
 	$app->tpl->assign('progress', $progress);	
@@ -274,23 +286,25 @@ respond( '/statistics/[:wpid]?', function( $request, $responce, $app ) {
 	$active_user['wpid'] = $_SESSION['wp_id'];
 	$active_user['name'] = PSUPerson::get($active_user['wpid'])->formatname("f l");
 	$wpid = $request->wpid;
-	$person = PSUPerson::get($wpid);
-	$current_user['username'] = $person->username;
-	$current_user['name'] = $person->formatname("f l");
-	$current_user['pidm'] = $person->pidm;
-	$current_user['wpid'] = $wpid;
-	$current_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($current_user['username']));
+	$current_user_parameters["wpid"] = $wpid;
+	$current_user_parameters["name"] = PSUPerson::get($wpid)->formatname("f l");
+	$current_user = new TrainingTracker\Staff($current_user_parameters);
+	$current_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($current_user->person()->username));
 	$active_user_level = PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($_SESSION['username']));
 	
-	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=? AND closed=?", array($current_user['pidm'], "0"));
+	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=? AND closed=?", array($current_user->person()->pidm, "0"));
 
 	if (strlen($checklist_id) > 2){
 		//get the data for which check boxes are checked
-		$checklist_checked = PSU::db('hr')->GetAll("SELECT item_id FROM person_checklist_items WHERE checklist_id=? AND response=?",array($checklist_id, "complete"));
+		$checklist_checked = PSU::db('hr')->GetAll("SELECT * FROM person_checklist_items WHERE checklist_id=? AND response=?",array($checklist_id, "complete"));
 		
 		for ($i = 0; $i < sizeof($checklist_checked); $i++){
+			$item_id = $checklist_checked[$i]["item_id"];
+			$tooltip["$item_id"]["item_id"] = $item_id;
+			$tooltip["$item_id"]["updated_by"] = PSUPerson::get($checklist_checked[$i]["updated_by"])->formatname("f l");
+			$tooltip["$item_id"]["updated_time"] = $checklist_checked[$i]["activity_date"];
 			$checklist_checked[$i] = $checklist_checked[$i]["item_id"];
-		}		
+		}
 
 		$last_modified = PSU::db('hr')->GetAll("SELECT max(activity_date) FROM person_checklist_items WHERE checklist_id=?", array($checklist_id));
 
@@ -299,10 +313,10 @@ respond( '/statistics/[:wpid]?', function( $request, $responce, $app ) {
 
 	//the title is the title name in the box.
 	if (strlen($modified_by)>2){
-		$title = $current_user['name'] . " - Last modified by " . PSUPerson::get($modified_by)->formatname("f l") . " on " . $last_modified[0]['max(activity_date)'];
+		$title = $current_user->name . " - Last modified by " . PSUPerson::get($modified_by)->formatname("f l") . " on " . $last_modified[0]['max(activity_date)'];
 	}
 	else{
-		$title = $current_user['name']; 
+		$title = $current_user->name; 
 	}
 
 	//getting comments from database
@@ -321,17 +335,16 @@ respond( '/statistics/[:wpid]?', function( $request, $responce, $app ) {
 	$checklist_item_sub_cat = get_checklist_sub_cat($current_user_level);
 	$checklist_item_cat = get_checklist_item_categories($current_user_level);
 
-	$stats = get_stats($wpid);
-	$progress = $stats['progress'];
-	unset($stats['progress']);
-
-	$total = 0;
-	$ct = 0;
-	foreach ($stats as $statistic){
-		$ct++;
-		$total += ($statistic);
+	//adding the tooltip data to the checklist_items
+	foreach ($checklist_items as &$checklist_item){
+		$item_id = $checklist_item['id'];
+		$checklist_item['updated_by'] = $tooltip["$item_id"]["updated_by"];
+		$checklist_item['updated_time'] = $tooltip["$item_id"]["updated_time"];
 	}
-	$progress = round(($total/$ct), 2);
+
+	$stats = $current_user->stats();
+	$progress = $current_user->stats("progress");
+
 	foreach ($checklist_item_sub_cat as &$sub_cat){
 		$id = $sub_cat['id'];
 		$sub_cat['stat'] = $stats["$id"];
@@ -405,9 +418,21 @@ respond( '/admin', function( $request, $response, $app ) {
 	$staff_collection->load(); 
 
 	$staff = $staff_collection->staff();
-
-	//PSU::dbug($staff);
-	//die;
+	foreach ($staff as $person){
+		$permission	= PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?",array($person->person()->username));
+		if ($permission == 'trainee'){
+			$person->permission = "Trainee";
+			$person->permission_slug = $permission;
+		}
+		else if ($permission == 'sta'){
+				$person->permission = "Consultant";
+				$person->permission_slug = $permission;
+		}
+		else if ($permission == 'shift_leader'){
+				$person->permission = "Senior Consultant";
+				$person->permission_slug = $permission;
+		}
+	}
 	$app->tpl->assign('staff', $staff);
 	$app->tpl->display('admin.tpl');
 });

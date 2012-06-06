@@ -53,4 +53,9 @@
 	#dialog-confirm{
 		display: none;
 	}
-	
+	.promote-confirmation{
+		display: none;
+	}
+	.demote-confirmation{
+		display: none;
+	}

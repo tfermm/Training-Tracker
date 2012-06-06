@@ -1,8 +1,8 @@
 <link rel="stylesheet" href="/webapp/training-tracker/templates/css/stats.css" type="text/css" />
 
 <script> //setting global javascript variables
-	current_user_wpid = "{$current_user.wpid}";
-	active_user_wpid = "{$active_user.wpid}";
+	current_user_wpid = "{$current_user->wpid}";
+	active_user_wpid = "{$active_user->wpid}";
 	current_user_level = "{$current_user_level}";
 	checkboxData = Array();
 	{foreach from=$checked item=checkbox}
@@ -19,6 +19,10 @@
 			$("#{$sub_category.id}").progressbar("option","value",{$sub_category.stat});
 		{/foreach}
 	});
+
+	{foreach from=$checklist_items item=item}
+		$(".{$item.item_id}-div").tooltip()	
+	{/foreach}
 </script>
 
 {box title=$title}
@@ -36,7 +40,7 @@
 			<div id="inner-accordion"> {*  foreach category look at each sub category and add every item per sub category *}
 			{foreach from=$checklist_items item=item}
 				{if $item.category_id eq $sub_category.id}
-					<input class="chkbox" type="checkbox" id="{$item.id}"> {$item.description}<br>
+					<div id="{$item.id}-div" {if isset($item.updated_by)}title="Last modified by - {$item.updated_by} on {$item.updated_time}"{else}title="This item hasn't been updated yet"{/if}><input class="chkbox" type="checkbox" id="{$item.id}" > {$item.description}</div>
 				{/if}
 			{/foreach}
 			</div>
@@ -54,10 +58,10 @@
 	 {* check the persons permission level, if they are above a mentee, show the confirm button *}
 	{if $progress eq 100}
 		{if ($active_user_level eq 'supervisor' || $active_user_level eq 'shift_leader' || $active_user_level eq 'manager' || $active_user_level eq 'webguru')}
-			<br><br>Pressing the confirm button will send an email to your boss saying {$current_user.name} has completed the tasks above<br>
+			<br><br>Pressing the confirm button will send an email to your boss saying {$current_user->person()->formatname("f l")} has completed the tasks above<br>
 			<button class="confirmButton">Confirm</button>
 			<div id="dialog-confirm" title="Are you sure?" > {* Used by the confirm popup *}
-				<span class="popup_text">Are you sure you want to confirm {$current_user.name}'s completion of the tasks listed above?</span>
+				<span class="popup_text">Are you sure you want to confirm {$current_user->person()->formatname("f l")}'s completion of the tasks listed above?</span>
 			</div>
 		{/if}
 	{/if}

@@ -4,7 +4,7 @@ namespace TrainingTracker;
 
 class Staff extends \PSU_DataObject {
 	function person(){
-		$person = \PSUPerson::get($this->username);
+		$person = \PSUPerson::get($this->wpid);
 		return $person;
 	}
 
