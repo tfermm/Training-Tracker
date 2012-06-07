@@ -8,6 +8,18 @@ class Staff extends \PSU_DataObject {
 		return $person;
 	}
 
+	function team(){
+		$sql = "SELECT mentor FROM teams WHERE mentee=?";
+		$result = \PSU::db('hr')->GetRow($sql,array($this->wpid));
+		if (isset($result['mentor'])){
+			$result['mentor_name'] = \PSUPerson::get($result['mentor'])->formatname("f l");
+		}
+		else{
+			$result = null;
+		}
+		return $result;
+	}
+
 	public function stats($parameter = null){
 		$wpid = $this->wpid;
 		$person = \PSUPerson::get($wpid);

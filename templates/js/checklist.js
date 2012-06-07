@@ -37,13 +37,13 @@ $(document).ready(function() {
 
 			//get the contents of the checkbox
 			postData[0] = $(".txtarea").val();
+			console.log(postData[0]);
 			//the checked checkboxes
 			postData[1] = current_user_wpid;
-
-			//append the valuse to the data base
+			//append the value to the data base
 			$.ajax({
 				type: "POST",
-				url: "/webapp/training-tracker/checklist_post_done",
+					url: "/webapp/training-tracker/checklist_post_comments",
 				data: { data: postData }
 			});
 			window.location = "/webapp/training-tracker/";//redirect back to the main page 
@@ -51,7 +51,6 @@ $(document).ready(function() {
 
 		//as the coments box is modified send the values to the database
 		$(".chkbox").on('click', $("div.chkbox input[type=checkbox]").is(":checked"),outputDataCheck);
-		$(".txtarea").on('keyup',outputData);
 
 		//split the checked string, which is the checked checkboxes stored by id,id,id... etc
 		for (var i in checkboxData){

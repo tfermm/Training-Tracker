@@ -141,9 +141,32 @@ respond( '/teams', function( $request, $response, $app ) {
 		die("You do not have access to this page.");
 	}
 	//getting all the mentors and mentees at the help desk.
-	$mentors = $staff_collection->mentors();//TODO make $mentor plural
+	$mentors = $staff_collection->mentors();
 	$mentees = $staff_collection->mentees();
+	$teams['unassigned'] = array();
+	foreach ($mentees as $mentee){
+		$mentee->team = $mentee->team();
+		if (isset($mentee->team)){
+			$mentor = $mentee->team['mentor'];
+			$mentee_team["wpid"] = $mentee->wpid;
+			$mentee_team["team_leader_name"] = $mentee->team['mentor_name'];
+			$mentee_team["team_leader_wpid"] = $mentee->team['mentor'];
+			$mentee_team["name"] = $mentee->name;
+			$teams["$mentor"]["$mentee->wpid"] = $mentee_team; 
+		}
+		else{
+			$mentee_team["wpid"] = $mentee->wpid;
+			$mentee_team["team_leader_name"] = $mentee->team['mentor_name'];
+			$mentee_team["team_leader_wpid"] = $mentee->team['mentor'];
+			$mentee_team["name"] = $mentee->name;
+			//$mentee_team[""] = $mentee->;
+			$teams["unassigned"]["$mentee->wpid"] = $mentee_team;
+		}
+	}
+	$teams = json_encode($teams);
 
+//	die;
+	/*
 	//check to see if the mentors have a team. Are they mentoring anybody at the moment.
 	foreach ($mentors as $mentor){ 
 		$mentor->team = (boolean)PSU::db('hr')->GetOne("SELECT 1 FROM teams WHERE mentor = ?", array($wpid));
@@ -187,10 +210,11 @@ respond( '/teams', function( $request, $response, $app ) {
 	//add final case to the string
 	$mentor_string_li .= "#mentor" . ($count+1 . " li"); 
 	$mentor_string .= "#mentor" . ($count+1);
-	
-	$app->tpl->assign('mentor_string_li', $mentor_string_li); //assigning php variables to smarty
-	$app->tpl->assign('mentor_string', $mentor_string);
-	$app->tpl->assign('checklist_item_categories', $result);
+	 */
+//	$app->tpl->assign('mentor_string_li', $mentor_string_li); //assigning php variables to smarty
+//	$app->tpl->assign('mentor_string', $mentor_string);
+//	$app->tpl->assign('checklist_item_categories', $result);
+	$app->tpl->assign('teams', $teams);
 	$app->tpl->assign('mentees', $mentees);
 	$app->tpl->assign('mentors', $mentors);
 	$app->tpl->display('teams.tpl'); //go go gadget show page
@@ -436,10 +460,20 @@ respond( '/admin', function( $request, $response, $app ) {
 	$app->tpl->assign('staff', $staff);
 	$app->tpl->display('admin.tpl');
 });
-//admin promote/demote page
-respond( '/admin/promote/[:wpid]?', function( $request, $response, $app ) {
-
-
+//admin promote page
+respond( '/admin/promote', function( $request, $response, $app ) {
+	PSU::db('calllog')->debug=true;
+	$permission = $_POST['data'][0];
+	$wpid = $_POST['data'][1];
+	$sql = "UPDATE call_log_employee SET user_privileges=? WHERE user_name=?";
+	PSU::db("calllog")->Execute($sql, array($permission, PSUPerson::get($wpid)->username));
+});
+//demote ajax page
+respond( '/admin/demote', function( $request, $response, $app ) {
+	$permission = $_POST['data'][0];
+	$wpid = $_POST['data'][1];
+	$sql = "UPDATE call_log_employee SET user_privileges=? WHERE user_name=?";
+	PSU::db("calllog")->Execute($sql, array($permission, PSUPerson::get($wpid)->username));
 });
 //the axax post part for teams
 respond( '/teams_post', function( $request, $responce, $app ) {
@@ -467,12 +501,16 @@ respond( '/teams_post', function( $request, $responce, $app ) {
 });
 
 //the axax post part for checklist comments
-respond( '/checklist_post_comments', function( $request, $responce, $app ) {
+respond( '/checklist_post_comments/[:wpid]?', function( $request, $responce, $app ) {
 
-	$comments = $_POST['data'][0];
-	$wpid = $_POST['data'][1];
+	$comments = $_POST['comments'];
+	$wpid = $request->wpid;
 	$pidm = PSUPerson::get($wpid)->pidm;
 	$modified_by = $_SESSION['pidm'];
+	$comments = stripslashes($comments);
+	$comments = trim($comments);
+	
+	//PSU::dbug($comments);	
 
 	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=?", array($pidm));
 
@@ -487,7 +525,8 @@ respond( '/checklist_post_comments', function( $request, $responce, $app ) {
 		$result2 = PSU::db('hr')->Execute("INSERT INTO person_checklist_items (checklist_id, item_id, response, notes, updated_by) VALUES (?, ?, ?, ?, ?)", array ($checklist_id, "007", "notes", $comments, $modified_by));
 		//if they don't, make them one
 	}
-
+	$location = $GLOBALS['BASE_URL'];
+	header("Location: $location");
 });
 
 //the axax post part for checklist check boxes 
