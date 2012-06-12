@@ -1,37 +1,33 @@
 
 $(document).ready(function() { 
 		
-		$( ".confirmButton" ).button();
 		$( ".confirmButton" ).click(function() {
-			
-		$( "#dialog-confirm" ).dialog({
-				resizable: false,
-				height:240,
-				modal: true,
-				buttons: {
-					"Yes": function() {
-						$( this ).dialog( "close" );
-							var postData = new Array();
-							postData[0] = current_user_wpid;
-							postData[1] = active_user_wpid;
-							postData[2] = current_user_level;
-							$.ajax({
-								type: "POST",
-								url: "/webapp/training-tracker/checklist_post_confirm",
-								data: { data: postData }
-							});
-							window.location = "/webapp/training-tracker/";//redirect back to the main page 
-						},
-						"No": function() {
+			$( "#dialog-confirm" ).dialog({
+					resizable: false,
+					height:240,
+					modal: true,
+					buttons: {
+						"Yes": function() {
 							$( this ).dialog( "close" );
-						}
-				}
+								var postData = new Array();
+								postData[0] = current_user_wpid;
+								postData[1] = active_user_wpid;
+								postData[2] = current_user_level;
+								console.log(postData);
+								$.ajax({
+									type: "POST",
+									url: "/webapp/training-tracker/checklist_post_confirm",
+									data: { data: postData }
+								});
+				//				window.location = "/webapp/training-tracker/";//redirect back to the main page 
+							},
+							"No": function() {
+								$( this ).dialog( "close" );
+							}
+					}
+			});
 		});
-
-
-		});
-
-		$( ".submitButton" ).button();
+/*
 		$( ".submitButton" ).click(function() {
 			var postData = new Array();
 
@@ -47,7 +43,7 @@ $(document).ready(function() {
 				data: { data: postData }
 			});
 			window.location = "/webapp/training-tracker/";//redirect back to the main page 
-		}); 
+		}); */
 
 		//as the coments box is modified send the values to the database
 		$(".chkbox").on('click', $("div.chkbox input[type=checkbox]").is(":checked"),outputDataCheck);

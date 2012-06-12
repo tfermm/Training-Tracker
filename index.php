@@ -1,6 +1,7 @@
 <?php
 
 require_once 'autoload.php';
+
 PSU::session_start(); // force ssl + start a session
 
 $GLOBALS['BASE_URL'] = '/webapp/training-tracker';
@@ -108,10 +109,10 @@ respond( '/?', function( $request, $response, $app ) {
 	foreach ($staff as $person){
 		$pidm = $person->person()->pidm;
 		$result = PSU::db('hr')->GetOne("SELECT PIDM FROM person_checklists WHERE PIDM=? AND closed=?", array($pidm, 0));
+	
 		if (!$result){
 			$type = PSU::db('hr')->GetOne("SELECT type FROM checklist WHERE slug=?",array($person->privileges));
-			$inserted = PSU::db('hr')->Execute("INSERT INTO person_checklists (type, PIDM, closed) VALUES (?, ?, ?)", array($type, $pidm, 0));
-			//PSU::dbug($pidm);
+			$inserted = PSU::db('hr')->Execute("INSERT INTO person_checklists (type, pidm, closed) VALUES (?, ?, ?)", array($type, $pidm, 0));
 		}
 	}
 
@@ -286,7 +287,6 @@ respond( '/checklist/[:wpid]?', function( $request, $responce, $app ) {
 	$stats = get_stats($current_user->wpid);
 	$progress = $stats['progress'];
 
-	PSU::dbug($current_user);
 
 	$app->tpl->assign('checklist_id', $checklist_id);	
 	$app->tpl->assign('progress', $progress);	
@@ -462,41 +462,92 @@ respond( '/admin', function( $request, $response, $app ) {
 });
 //admin promote page
 respond( '/admin/promote', function( $request, $response, $app ) {
-	PSU::db('calllog')->debug=true;
+
+	PSU::db('hr')->debug=true;
+
 	$permission = $_POST['data'][0];
 	$wpid = $_POST['data'][1];
+	$pidm = PSUPerson::get($wpid)->pidm;
+
+	$sql = "UPDATE call_log_employee SET user_privileges=? WHERE user_name=?";
+	PSU::db('calllog')->Execute($sql, array($permission, PSUPerson::get($wpid)->username));
+
+	$type = PSU::db('hr')->GetOne("SELECT type FROM checklist WHERE slug=?",array($permission));
+	$result = PSU::db('hr')->GetOne("SELECT PIDM FROM person_checklists WHERE PIDM=? AND type=?", array($pidm, $type));
+
+	if (!$result){
+		$updated = PSU::db('hr')->Execute("UPDATE person_checklists SET closed = ? WHERE closed = ? AND pidm = ?", array(1, 0, $pidm));
+		$inserted = PSU::db('hr')->Execute("INSERT INTO person_checklists (type, pidm, closed) VALUES (?, ?, ?)", array($type, $pidm, 0));
+	}
+	else{
+		$updated = PSU::db('hr')->Execute("UPDATE person_checklists SET closed = ? WHERE closed = ? AND pidm = ?", array(1, 0, $pidm));
+		$updated = PSU::db('hr')->Execute("UPDATE person_checklists SET closed = ? WHERE type = ? AND pidm = ?", array(0, $type, $pidm));
+	}
+	/*
+PSU::db('calllog')->debug=true;
+
+	PSU::db('hr')->debug=true;
+	$permission = $_POST['data'][0];
+	$wpid = $_POST['data'][1];
+	$pidm = PSUPerson::get($wpid)->pidm;
+
 	$sql = "UPDATE call_log_employee SET user_privileges=? WHERE user_name=?";
 	PSU::db("calllog")->Execute($sql, array($permission, PSUPerson::get($wpid)->username));
+
+	$sql = "UPDATE person_checklists SET closed = ? WHERE pidm = ? AND closed = ?";
+	PSU::db('hr')->Execute($sql, array(1, $pidm, 0));
+
+	$sql = "INSERT person_checklists (type, pidm, closed) VALUES (?, ?, ?)";
+	PSU::db('hr')->Execute($sql, array($type, $pidm, 0));
+
+	 */
 });
 //demote ajax page
 respond( '/admin/demote', function( $request, $response, $app ) {
+
+	PSU::db('hr')->debug=true;
+
 	$permission = $_POST['data'][0];
 	$wpid = $_POST['data'][1];
+	$pidm = PSUPerson::get($wpid)->pidm;
+
 	$sql = "UPDATE call_log_employee SET user_privileges=? WHERE user_name=?";
-	PSU::db("calllog")->Execute($sql, array($permission, PSUPerson::get($wpid)->username));
+	PSU::db('calllog')->Execute($sql, array($permission, PSUPerson::get($wpid)->username));
+
+	$type = PSU::db('hr')->GetOne("SELECT type FROM checklist WHERE slug=?",array($permission));
+	$result = PSU::db('hr')->GetOne("SELECT PIDM FROM person_checklists WHERE PIDM=? AND type=?", array($pidm, $type));
+
+	if (!$result){
+		$updated = PSU::db('hr')->Execute("UPDATE person_checklists SET closed = ? WHERE closed = ? AND pidm = ?", array(1, 0, $pidm));
+		$inserted = PSU::db('hr')->Execute("INSERT INTO person_checklists (type, pidm, closed) VALUES (?, ?, ?)", array($type, $pidm, 0));
+	}
+	else{
+		$updated = PSU::db('hr')->Execute("UPDATE person_checklists SET closed = ? WHERE closed = ? AND pidm = ?", array(1, 0, $pidm));
+		$updated = PSU::db('hr')->Execute("UPDATE person_checklists SET closed = ? WHERE type = ? AND pidm = ?", array(0, $type, $pidm));
+	}
 });
 //the axax post part for teams
 respond( '/teams_post', function( $request, $responce, $app ) {
 
 	//get the data to variables from the posted data
-	$post_data = $_POST['data'][0]; //mentee's wpid
-	$mentor = $_POST['data'][1]; //mentors wpid
+	$mentee_wpid = $_POST['data'][0];
+	$mentor_wpid = $_POST['data'][1];
 
-	//PSU::db('hr')->debug=true;
-	$result = PSU::db('hr')->GetAll("SELECT * FROM teams WHERE mentee = '$post_data'");
+	PSU::db('hr')->debug=true;
+	$result = PSU::db('hr')->GetAll("SELECT * FROM teams WHERE mentee = ?", array($mentee_wpid));
 	//try to select a team with that mentee
 
 	if (isset($result[0])){
-		$result1 = PSU::db('hr')->Execute("UPDATE teams SET mentor='$mentor' WHERE mentee = '$post_data'");
+		$result1 = PSU::db('hr')->Execute("UPDATE teams SET mentor=? WHERE mentee = ?", array($mentor_wpid, $mentee_wpid));
 		// if team exists with that mentee replace mentor	
 	}
 	else{
-		$result2 = PSU::db('hr')->Execute("INSERT INTO teams (mentor, mentee) VALUES ('$mentor', '$post_data')");
+		$result2 = PSU::db('hr')->Execute("INSERT INTO teams (mentor, mentee) VALUES ( ?, ?)", array($mentor_wpid, $mentee_wpid));
 		//if the mentee isn't in a team make them a team
 	}
-	if ($mentor == NULL){
+	if ($mentor_wpid == "unassigned"){
 		//if you move the mentee back to the mentee category in the team builder, it removes their database entry.
-		$result3 = PSU::db('hr')->Execute("DELETE FROM teams WHERE mentee = '$post_data'");
+		$result3 = PSU::db('hr')->Execute("DELETE FROM teams WHERE mentee = ?", array($mentee_wpid));
 	}
 });
 
@@ -542,7 +593,7 @@ respond( '/checklist_post_chkbox', function( $request, $responce, $app ) {
 	$pidm=$person->pidm;
 	$modified_by = $_SESSION['pidm'];
 
-	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=?", array($pidm));
+	$checklist_id = PSU::db('hr')->GetOne("SELECT id FROM person_checklists WHERE pidm=? AND closed = ?", array($pidm, 0));
 
 	//check to see if checkbox exists
 	$does_exist = PSU::db('hr')->GetOne("SELECT item_id FROM person_checklist_items WHERE item_id=? AND checklist_id=?", array($checked_id, $checklist_id));
@@ -608,7 +659,7 @@ respond( '/checklist_post_confirm', function( $request, $responce, $app ) {
 
 	$message = "$current_user_name has completed their current level of $current_user_level\nand would enjoy a pay raise from \$$current_pay to \$$future_pay.\n\nUSNH ID: $usnh_id \n\nSent by\n\t$active_user_name";
 
-	PSU::mail("tlferm@plymouth.edu","Training Tracker - " . PSUPerson::get("$current_user_wpid")->formatname("f l") . " pay raise request","$message");
+	PSU::mail("tfermm@gmail.com","Training Tracker - " . PSUPerson::get("$current_user_wpid")->formatname("f l") . " pay raise request","$message");
 });
 $app_routes = array();
 

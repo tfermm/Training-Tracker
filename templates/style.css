@@ -28,10 +28,7 @@
 	}
 	.dark {
 		border: 1px solid #AAA;
-		background: #666;
-		color: #222;
-		font-weight: bold;
-		background: #CCC url(/webapp/training-tracker/includes/header.png) 50% 50% repeat-x;
+		background: #EEE;
 	}
 	.ui-accordion-content{
 		box-sizing: content-box;
@@ -53,9 +50,6 @@
 	#dialog-confirm{
 		display: none;
 	}
-	.promote-confirmation{
-		display: none;
-	}
-	.demote-confirmation{
+	.hidden{
 		display: none;
 	}

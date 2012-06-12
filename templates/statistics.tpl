@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/webapp/training-tracker/templates/css/stats.css" type="text/css" />
+<link rel="stylesheet" href="/webapp/training-tracker/templates/css/stats.css" type="text/css" /> 
 
 <script> //setting global javascript variables
 	current_user_wpid = "{$current_user->wpid}";
@@ -47,25 +47,7 @@
 		{/foreach}
 	</div>
 {/foreach}
-{*
-<div class = "people">
-	<br><br>
-	<textarea class="txtarea" rows="10" cols="40" id="3">{$comments} {* comment section *}
-{*	</textarea>
-	<div id="3-output"></div>
-	<br />
-	<button class="submitButton">Done</button>
-	 {* check the persons permission level, if they are above a mentee, show the confirm button *}
-{*	{if $progress eq 100}
-		{if ($active_user_level eq 'supervisor' || $active_user_level eq 'shift_leader' || $active_user_level eq 'manager' || $active_user_level eq 'webguru')}
-{*			<br><br>Pressing the confirm button will send an email to your boss saying {$current_user->person()->formatname("f l")} has completed the tasks above<br>
-{*			<button class="confirmButton">Confirm</button>
-{*			<div id="dialog-confirm" title="Are you sure?" > {* Used by the confirm popup *}
-{*				<span class="popup_text">Are you sure you want to confirm {$current_user->person()->formatname("f l")}'s completion of the tasks listed above?</span>
-{*			</div>
-{*		{/if}
-{*	{/if}
-{*</div> *}
+
 <br>
 <FORM action="/webapp/training-tracker/checklist_post_comments/{$current_user->person()->wpid}" method="post">
 	<P>
