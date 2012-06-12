@@ -5,7 +5,7 @@ var mentor_string = "{$mentor_string}";
 -->
 {box title="Team builder"}
 
-<style> {* TODO make it not ugly *}
+<style> {* TODO make it not ugly and move to CSS file *}
 	#team1, #team2 { list-style-type: none; margin: 0; padding: 0; float: left; margin-right: 10px; border: 1px solid #AAA; padding: 5px; width: 410px;}
 	#team1 li, #team2 li { margin: 5px; padding: 5px; font-size: 1.2em; width: 390px; }
 </style> 
@@ -14,7 +14,7 @@ var mentor_string = "{$mentor_string}";
 </script>
 {literal}
 <script>
-	
+//TODO move the stuff in the literal tag to its own file	
 	$(document).ready(function(){
 		$(".chzn-select").chosen(); 
 		$(document).on( 'change', 'select.list1', function() { 
@@ -40,11 +40,13 @@ var mentor_string = "{$mentor_string}";
 		$( "#team1, #team2" ).sortable({
 			connectWith: ".connectedSortable",
 			receive: function(event, ui){
+				console.log(event);
 				//the number of the team it is dropping to is the last character, so this grabs the last character
 				listNum = event.target.id.substr(event.target.id.length - 1);
 				var mentor_wpid = $(".list"+listNum).val();
-				var mentee_wpid = event.toElement.id;
-				//console.log(mentor_wpid);
+				//var mentee_wpid = event.toElement.id;
+				var mentee_wpid = event.originalEvent.target.id;
+				console.log(mentee_wpid);
 				if (listNum == 1){
 					//it is removed from list2
 					listNumAlt = 2;	

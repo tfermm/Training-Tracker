@@ -1,6 +1,6 @@
 $(function() {
 		
-		$( "#mentee, " + mentor_string ).sortable().disableSelection();
+	/*	$( "#mentee, " + mentor_string ).sortable().disableSelection();
 
 		var $tabs = $( "#tabs" ).tabs();
 		var $tab_items = $( "ul:first li", $tabs ).droppable({
@@ -49,7 +49,7 @@ $(function() {
 					});
 			});
 			}
-		});
+		}); */
 	}); 				
 
 /*

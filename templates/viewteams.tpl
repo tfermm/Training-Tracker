@@ -1,5 +1,3 @@
-<script src="templates/js/behavior.js"></script>
-
 {box title="Teams"}
 {foreach from=$team_array item=team}
 	<h4>{$team.mentor}</h4>
