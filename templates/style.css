@@ -1,55 +1,48 @@
-	.ui-tabs {
-		position: static;
-	}
+.light {
+	border: 1px solid #AAA;
+	background: #e6e6e6;
+	color: #222;
+	font-weight: bold;
+}
+.ui-accordion{
+	-moz-box-sizing: content-box !important;
+	box-sizing: content-box !important;
+}
+.ui-accordion-content{
+	box-sizing: content-box !important;
+}
 
-	* {
-		 box-sizing: content-box;
-	}
-	
-	.mentees ul li{
-		margin: 0 2px 2px 2px; 
-		padding: 2px;
-		font-size: 1em; 
-		width: 200px; 
-	}
-	
-	.mentee-1{
-		margin: 0 2px 2px 2px; 
-		padding: 2px;
-		font-size: 1em; 
-		width: 200px; 
-	}
-	.light {
-		border: 1px solid #AAA;
-		background: #CCC;
-		color: #222;
-		font-weight: bold;
-		background: #CCC url(/webapp/training-tracker/includes/header.png) 50% 50% repeat-x;
-	}
-	.dark {
-		border: 1px solid #AAA;
-		background: #EEE;
-	}
-	.ui-accordion-content{
-		box-sizing: content-box;
-	}
-	#toolbar {
-		background: #CCC url(/webapp/training-tracker/includes/header.png) 50% 50% repeat-x;
-		padding: 5px 4px;
-	}
-	#accordion{
-		box-sizing: content-box;
-	}
-	#progressbar{
-		background: #99FF99
+.smoothness{
+	background: #CCC url(/webapp/training-tracker/includes/header.png) 50% 50% repeat-x;
+	padding: 5px 4px;
+}
 
-	}
-	.ui-progressbar-value{
-		background: #9F9;
-  }
-	#dialog-confirm{
-		display: none;
-	}
-	.hidden{
-		display: none;
-	}
+.ui-progressbar-value{
+	background: #9F9 !important;
+	-moz-box-sizing:    content-box !important;
+	-webkit-box-sizing: content-box !important;
+	-ms-box-sizing:     content-box !important;
+	box-sizing:         content-box !important;	
+}
+
+#dialog-confirm{
+	display: none;
+}
+
+.hidden{
+	/* TODO: we might have this one declared centrally */
+	visibility:hidden;
+}
+
+.highlight{
+	background: #FFFFCC;
+}
+
+.title{
+	/* TODO: don't do this shizzle here */
+	margin-bottom: .5em;
+}
+.tt-warning{
+	/* TODO: we have a warning style, I *think*.  Perhaps make this style more app specific... tt-warning */
+	background: #FAA732; 
+}

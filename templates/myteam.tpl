@@ -1,30 +1,15 @@
-<script src="/webapp/training-tracker/templates/js/index.js"></script>
-<link rel="stylesheet" href="/webapp/training-tracker/templates/css/index.css" type="text/css" />
-
-{*  *}
+{PSU_JS src="/webapp/training-tracker/js/index.js"}
+{PSU_CSS href="/webapp/training-tracker/css/index.css"}
 
 {box size="16" title="My team"}
-
-	<script>
-		$(document).ready(function() {
-				{foreach from=$teams  item=staffer name=count}
-					$("#{$staffer.wpid}").progressbar("option","value",{$staffer.percent});
-				{/foreach}
-		});
-	</script>
-
 	{if $is_mentor}
 		{foreach from=$teams  item=staffer name=count}
-			{if $smarty.foreach.count.iteration is even}
-				<div id="toolbar" class="light ui-corner-all">
-					<a href="/webapp/training-tracker/checklist/{$staffer.wpid}">View/edit {$staffer.name}</a> <a href="/webapp/training-tracker/statistics/{$staffer.wpid}"><div id="{$staffer.wpid}" class="progressbar"></div></a>
-				</div>
-			{else}
-				<div id="toolbar" class="dark ui-corner-all">
-					<a href="/webapp/training-tracker/checklist/{$staffer.wpid}">View/edit {$staffer.name}</a> <a href="/webapp/training-tracker/statistics/{$staffer.wpid}"><div id="{$staffer.wpid}" class="progressbar"></div></a>
-				</div>
-			{/if}
-
+			{if isset($staffer->wpid)}
+					<div class="smoothness">
+						<a href="/webapp/training-tracker/staff/statistics/{$staffer->wpid}">View/edit {$staffer->person()->formatName('f l')} - progress: {$staffer->stats('progress')}% </a>
+						<div id="{$staffer->wpid}" data-progress="{$staffer->stats('progress')}" class="progressbar"></div>
+					</div>
+				{/if}
 		{/foreach}
 	{/if}
 {/box}

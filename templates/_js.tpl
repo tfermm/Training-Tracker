@@ -1,7 +1,7 @@
-{*PSU_JS src = "_js.tpl"*}
-<script src="/webapp/training-tracker/templates/code.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
-<script src="/webapp/training-tracker/templates/js/chosen.jquery.js"></script>
-<script src="/webapp/training-tracker/templates/js/chosen.jquery.min.js"></script>
-<script src="/webapp/training-tracker/templates/js/underscore-min.js"></script>
+{PSU_JS src="https://www.google.com/jsapi"}
+{PSU_JS src="/webapp/training-tracker/js/jquery.gritter.js"}
+{PSU_JS src="/webapp/training-tracker/js/code.js"}
+{* TODO:  try this: {PSU_JS id=jquery-ui *}
+{PSU_JS id=jquery-ui src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"}
+{PSU_JS src="/webapp/training-tracker/js/chosen.jquery.min.js"}
+{PSU_JS src="/webapp/training-tracker/js/underscore-min.js"}

@@ -8,16 +8,44 @@ class Staff extends \PSU_DataObject {
 		return $person;
 	}
 
-	function team(){
-		$sql = "SELECT mentor FROM teams WHERE mentee=?";
-		$result = \PSU::db('hr')->GetRow($sql,array($this->wpid));
-		if (isset($result['mentor'])){
-			$result['mentor_name'] = \PSUPerson::get($result['mentor'])->formatname("f l");
+	/**
+	 * returns a team as an associative array (by wpid) 
+	 * OR an individual element of the array if an index is passed.
+	 *
+	 * @param $index string Associative index (optional)
+	 */
+	function team( $index = null ){
+		// static variable is instantiated the FIRST time this is run
+		static $team = array();
+
+		// if the static variable's wpid index has not been set, the 
+		// team data has not been loaded.
+		if( ! $team[ $mentor_wpid ][ $this->wpid ] ) {
+			$sql = "SELECT mentor, mentee FROM teams WHERE mentee=?";
+			$result = \PSU::db('hr')->GetRow($sql,array($this->wpid));
+
+			if (isset($result['mentor'])){
+				$mentor = $result['mentor'];
+
+				// set the results from the query into the static variable
+				// for later use.
+				$mentee['wpid'] = $this->wpid;
+				$mentee['name'] = $this->person()->formatName("f l");
+				$team[ $mentor ][ $this->wpid ] = $mentee;
+				
+			}//end if
+			else{
+					$mentor = 'unassigned';
+					$mentee['wpid'] = $this->wpid;
+					$mentee['name'] = $this->person()->formatName("f l");
+					$team[ $mentor ][ $this->wpid ] = $mentee;
+			}//end if
+
 		}
-		else{
-			$result = null;
-		}
-		return $result;
+		//   Return either the full $team[ $wpid ] or an idividual index
+		return $index ? $team[$mentor][$index] : $team;
+		//	return $team[ $this->wpid ];
+		
 	}
 
 	public function stats($parameter = null){
@@ -47,18 +75,18 @@ class Staff extends \PSU_DataObject {
 		foreach ($search as $item){
 
 			$stat = \PSU::db('hr')->GetAll("SELECT items.item_id	FROM person_checklist_items items 
-																													JOIN person_checklists checklist 
-																													ON items.checklist_id = checklist.id 
-																													JOIN checklist_item_categories categories 
-																													ON categories.type = checklist.type
-																													JOIN checklist_items checklist_items
-																													ON checklist_items.id = items.item_id
-																													WHERE items.checklist_id = checklist.id 
-																													AND checklist.type = categories.type
-																													AND categories.id=?
-																													AND items.response=?
-																													AND checklist_items.category_id = categories.id
-																													AND checklist.pidm=?", array($item,"complete", $pidm)); 
+																													  JOIN person_checklists checklist 
+																													    ON items.checklist_id = checklist.id 
+																													  JOIN checklist_item_categories categories 
+																													    ON categories.type = checklist.type
+																													  JOIN checklist_items checklist_items
+																													    ON checklist_items.id = items.item_id
+																													 WHERE items.checklist_id = checklist.id 
+																													   AND checklist.type = categories.type
+																												     AND categories.id=?
+																													   AND items.response=?
+																													   AND checklist_items.category_id = categories.id
+																													   AND checklist.pidm=?", array($item,"complete", $pidm)); 
 		
 		
 		
@@ -138,7 +166,7 @@ class Staff extends \PSU_DataObject {
 
 		//PSU::dbug($stats);
 		//die();
-		return (isset($parameter)?$stats["$parameter"]:$stats);
+		return (isset($parameter)?$stats[$parameter]:$stats);
 
 		
 	

@@ -1,7 +1,6 @@
 <?php
 
 namespace TrainingTracker;
-include '/includes/functions.php';
 
 
 class StaffCollection extends \PSU\Collection {
