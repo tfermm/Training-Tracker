@@ -61,11 +61,10 @@ class Staff extends \PSU_DataObject {
 		$current_level = \PSU::db('calllog')->GetOne("SELECT user_privileges FROM call_log_employee WHERE user_name=?", array($username));
 		$completed = sizeof($checkboxes); 
 
-
-		if (strcmp($current_level, 'trainee')==0){
+		if ($current_level == 'trainee'){
 			$search = array("16","17","18","19");
 		}
-		else if (strcmp($current_level,'sta')==0){
+		else if ($current_level == 'sta'){
 			$search = array("20","21","22","23","24","25","26","27");
 		}
 		else{
@@ -87,7 +86,6 @@ class Staff extends \PSU_DataObject {
 																													   AND items.response=?
 																													   AND checklist_items.category_id = categories.id
 																													   AND checklist.pidm=?", array($item,"complete", $pidm)); 
-		
 		
 		
 			$stat = sizeof($stat);

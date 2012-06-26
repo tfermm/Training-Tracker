@@ -1,6 +1,4 @@
 <?php
-// TODO: global suggestion:  Move all SQL in routes to API/method calls
-// TODO: move all SQL out of the parameters of ADOdb methods and into $sql variables
 // TODO: Remove commented code where it isn't needed.
 require_once 'autoload.php';
 
@@ -43,12 +41,6 @@ respond( function( $request, $response, $app ) {
 
 	$memcache = new \PSUMemcache('training-tracker_teams');
 	if ( ! ($cached_results = $memcache->get('is_admin'))){
-
-		// TODO: move $current_user junk to the catch-all.
-		$current_user_parameters["wpid"] = $app->user->wpid;
-
-		// TODO: move to catch-all
-		$current_user = new TrainingTracker\Staff($current_user_parameters);
 
 		$staff_collection = new TrainingTracker\StaffCollection();
 		$staff_collection->load(); 
@@ -99,7 +91,6 @@ respond( function( $request, $response, $app ) {
 		$active_user_parameters["wpid"] = $wpid;
 		$active_user = new TrainingTracker\Staff($active_user_parameters);
 
-
 		$memcache->set( 'active_user', $active_user, MEMCACHE_COMPRESSED, 60 * 5);
 		$memcache->set( 'has_team', $has_team, MEMCACHE_COMPRESSED, 60 * 5);
 		$memcache->set( 'is_admin', $is_admin, MEMCACHE_COMPRESSED, 60 * 5);
@@ -119,7 +110,6 @@ respond( function( $request, $response, $app ) {
 	if (!$is_valid){
 		die("You do not have access to this app.");
 	}
-
 
 	$app->active_user = $active_user;
 	$app->is_admin = $is_admin;
@@ -144,22 +134,26 @@ respond( '/?', function( $request, $response, $app ) {
 		$staff_collection->load();
 
 		$staff = $staff_collection->staff();
-		foreach ($staff as $person){
-			$pidm = $person->person()->pidm;
-
-			if (!TrainingTracker::checklist_exists($pidm)){
-				//get tybe based off of a persons privileges
-				$type = TrainingTracker::checklist_type($person->privileges);
-				//insert new checklist (pidm, type)
-				TrainingTracker::checklist_insert($pidm, $type);
-
-			}
-		}
 	}
 	else{
 		$current_user_parameter["wpid"] = $app->user->wpid;
-		$staff = new TrainingTracker\Staff($current_user_parameter);
+		$person = new TrainingTracker\Staff($current_user_parameter);
+		$person->privileges = TrainingTracker::get_user_level($person->wpid);
+		$staff[0] = $person;
 	}
+
+	foreach ($staff as $person){
+		$pidm = $person->person()->pidm;
+
+		if (!TrainingTracker::checklist_exists($pidm)){
+			//get tybe based off of a persons privileges
+			$type = TrainingTracker::checklist_type($person->privileges);
+			//insert new checklist (pidm, type)
+			TrainingTracker::checklist_insert($pidm, $type);
+
+		}
+	}
+
 	$app->tpl->assign('staff', $staff);
 	$app->tpl->display('index.tpl');
 });
