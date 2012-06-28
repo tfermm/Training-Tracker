@@ -2,7 +2,7 @@
 //the axax post part for checklist check boxes 
 respond('POST', '/checklist/item', function( $request, $responce, $app ) {
 	$checked_id = $request->data[0];
-	if (preg_match("/^\\d{1,3}$/", $checked_id)){
+	if (preg_match('/^\\d{1,3}$/', $checked_id)){
 		$wpid = $request->data[1];
 		if (TrainingTracker::valid_wpid($wpid)){
 			$response = $request->data[2];
@@ -56,6 +56,7 @@ respond('POST', '/checklist/comments/[:wpid]', function( $request, $responce, $a
 			}
 		}
 		else if ($_POST['name'] == 'confirm'){
+
 			$current_user_level = TrainingTracker::get_user_level($wpid);
 
 			$people['active'] = $app->user;
@@ -70,24 +71,24 @@ respond('POST', '/checklist/comments/[:wpid]', function( $request, $responce, $a
 
 		}
 	}
-	$responce->redirect("/webapp/training-tracker/");
+	$responce->redirect('/webapp/training-tracker/');
 });
 
 
 //promote/demote ajax page
 respond('POST', '/fate', function( $request, $response, $app ) {
 
-	$permission = $_POST['data'][0];
-	$wpid = $_POST['data'][1];
+	$permission = $request->data[0];
+	$wpid = $request->data[1];
+
 	if ($permission == 'shift_leader' || $permission == 'sta' || $permission == 'trainee'){
 		if(TrainingTracker::valid_wpid($wpid)){
+
 			$pidm = PSUPerson::get($wpid)->pidm;
+			$type = TrainingTracker::checklist_type($permission);
 
 			TrainingTracker::set_user_level($wpid, $permission);
-
-			$type = TrainingTracker::get_checklist_type($permission);
-
-			if (!TrainingTracker::checklist_exists($pidm)){
+			if (!TrainingTracker::checklist_exists($pidm, $type, 1)){
 				TrainingTracker::checklist_close($pidm);
 				TrainingTracker::checklist_insert($pidm, $type);
 			}
@@ -103,7 +104,7 @@ respond('POST', '/fate', function( $request, $response, $app ) {
 respond( 'GET', '/fate', function( $request, $response, $app ) {
 
 	if (!$app->is_admin){
-		die("You do not have access to this page.");
+		die('You do not have access to this page.');
 	}
 
 	$staff_collection = new TrainingTracker\StaffCollection();
@@ -126,10 +127,10 @@ respond( 'GET', '/statistics/[:wpid]', function( $request, $responce, $app ) {
 	$wpid = $request->wpid;
 	
 	if(!TrainingTracker::valid_wpid($wpid)){
-		$responce->redirect("../../");
+		$responce->redirect('../../');
 	}
 
-	$current_user_parameter["wpid"] = $wpid;
+	$current_user_parameter['wpid'] = $wpid;
 	$current_user = new TrainingTracker\Staff($current_user_parameter);
 	$current_user_level = TrainingTracker::get_user_level($current_user->wpid);
 
@@ -138,17 +139,17 @@ respond( 'GET', '/statistics/[:wpid]', function( $request, $responce, $app ) {
 
 	if (strlen($checklist_id) > 2){
 		 //get the data for which check boxes are checked
-		$checklist_checked = TrainingTracker::checklist_checked($checklist_id); //PSU::db('hr')->GetAll($sql, array($checklist_id, "complete"));
+		$checklist_checked = TrainingTracker::checklist_checked($checklist_id);
 
 		 // TODO: Y U NO USE FOREACH( $something as &$item ) by reference?
 		// yes
 		$tooltip = array();
 		foreach ($checklist_checked as &$checked){
-			$item_id = $checked["item_id"];
-			$tooltip[$item_id]["item_id"] = $item_id;
-			$tooltip[$item_id]["updated_by"] = PSUPerson::get($checked["updated_by"])->formatname("f l");
-			$tooltip[$item_id]["updated_time"] = $checked["activity_date"];
-			$checked = $checked["item_id"];
+			$item_id = $checked['item_id'];
+			$tooltip[$item_id]['item_id'] = $item_id;
+			$tooltip[$item_id]['updated_by'] = PSUPerson::get($checked['updated_by'])->formatname('f l');
+			$tooltip[$item_id]['updated_time'] = $checked["activity_date"];
+			$checked = $checked['item_id'];
 		}
 
 		$last_modified_info = TrainingTracker::last_modified($checklist_id);
@@ -158,10 +159,10 @@ respond( 'GET', '/statistics/[:wpid]', function( $request, $responce, $app ) {
 
 	//the title is the title name in the box.
 	if (strlen($modified_by)>2){
-		$title = $current_user->person()->formatName("f l") . " - Last modified by " . PSUPerson::get($modified_by)->formatname("f l") . " on " . $last_modified . '.';
+		$title = $current_user->person()->formatName('f l') . ' - Last modified by ' . PSUPerson::get($modified_by)->formatname('f l') . ' on ' . $last_modified . '.';
 	}
 	else{
-		$title = $current_user->person()->formatName("f l"); 
+		$title = $current_user->person()->formatName('f l'); 
 	}
 
 	//getting comments
@@ -183,12 +184,12 @@ respond( 'GET', '/statistics/[:wpid]', function( $request, $responce, $app ) {
 	//adding the tooltip data to the checklist_items
 	foreach ($checklist_items as &$checklist_item){
 		$item_id = $checklist_item['id'];
-		$checklist_item['updated_by'] = $tooltip[$item_id]["updated_by"];
-		$checklist_item['updated_time'] = $tooltip[$item_id]["updated_time"];
+		$checklist_item['updated_by'] = $tooltip[$item_id]['updated_by'];
+		$checklist_item['updated_time'] = $tooltip[$item_id]['updated_time'];
 	}
 
 	$stats = $current_user->stats();
-	$progress = $current_user->stats("progress");
+	$progress = $current_user->stats('progress');
 
 	foreach ($checklist_item_sub_cat as &$sub_cat){
 		$id = $sub_cat['id'];
@@ -208,6 +209,6 @@ respond( 'GET', '/statistics/[:wpid]', function( $request, $responce, $app ) {
 	$app->tpl->assign('checklist_item_cat', $checklist_item_cat);
 	$app->tpl->assign('current_level', $current_level);
 	$app->tpl->assign('stats', $stats);
-	$app->tpl->display("statistics.tpl");
+	$app->tpl->display('statistics.tpl');
 });
 

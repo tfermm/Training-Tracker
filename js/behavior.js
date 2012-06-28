@@ -1,164 +1,141 @@
-$(function() {
-		
-	/*	$( "#mentee, " + mentor_string ).sortable().disableSelection();
+//TrainingTracker object to hold functions
+var TrainingTracker = {
 
-		var $tabs = $( "#tabs" ).tabs();
-		var $tab_items = $( "ul:first li", $tabs ).droppable({
-			
+	//functions from the admin page
+	demotionPost: function(wpid, $row){
+		var name = $row.find('.name').html();
+		$('.popup_text').text('Are sure you want to demote ' + name + '?');
+		$( '#confirmation' ).dialog({
+					resizable: false,
+					height:200,
+					modal: true,
+					buttons: {
+						'Yes': function() {
+							var demoteText = $row.find('.permission').html();
+							if (demoteText == 'Senior Information Desk Consultant'){
+								var demoteTo = 'sta';
+								var demoteName = 'Information Desk Consultant';
+								$row.find('.promote').removeAttr('disabled');
+							}
+							else{
+								var demoteTo = 'trainee';
+								var demoteName = 'Information Desk Trainee';
 
-			accept: ".connected-sortable li",
-			hoverClass: "ui-state-hover",
-			over: function(event, ui) {
-				var $item = $(this);
-				var $list = $($item.find("a").attr("href")).find(".connected-sortable");
-				$tabs.tabs("select", $tab_items.index($item));
-				ui.draggable.appendTo($list).show("slow");
-			},
-			drop: function( event, ui ) {
-				var $item = $( this );
-				var $list = $( $item.find( "a" ).attr( "href" ) )
-					.find( ".connected-sortable" );
-
-				ui.draggable.hide( "slow", function() {
-					$tabs.tabs( "select", $tab_items.index( $item ) );
-					$( this ).appendTo( $list ).show( "slow" );
-					//add ajax request to move this person in the db
-					//jQuery.post()
-					//work on getting the ids out of this and $item
-				
-					//TODO: add mouse over event to load tab
-					
-					//var uid = $item.find();
-
-
-					var postData = new Array();
-
-					console.log(this.id);//id for mentee
-					postData[0] = this.id;
-					console.log($item.find('a').attr('id'));//the id for mentor
-					postData[1] = $item.find('a').attr('id');
-					console.log(this); //has the mentee
-					console.log($item); //has the mentor
-					
-					var mentorId = $item.find('a').attr('id'); 
-					console.log ( postData );
-					$.ajax({
-					  type: "POST",
-						url: "teams_post",
-						data: { data: postData }
-					});
-			});
-			}
-		}); */
-	}); 				
-
-/*
-$(document).ready(function() { 
-		
-		$( ".confirmButton" ).button();
-
-		$( ".submitButton" ).button();
-		$( ".submitButton" ).click(function() {
-			var postData = new Array();
-			postData[0] = $(".txtarea").val();
-			postData[1] = checkboxData;
-			postData[2] = "{$current_user.wpid}";
-			postData[3] = "{$active_user.wpid}";
-			postData[4] = "{$current_user_level}";
-			$.ajax({
-				type: "POST",
-				url: "/webapp/training-tracker/checklist_post_done",
-				data: { data: postData }
-			});
-			window.location = "/webapp/training-tracker/";//redirect back to the main page 
-		}); 
-
-		$( "#team_builder" ).button();
-		$( "#team_builder" ).click(function() { window.location = "/webapp/training-tracker/teams"; });
-
-		$( "#view_teams" ).button();
-		$( "#view_teams" ).click(function() { window.location = "/webapp/training-tracker/viewteams"; });
-
-		$( "#cklist" ).button();
-		$( "#cklist" ).click(function() { window.location = "/webapp/training-tracker/"; });
-
-		$(".chkbox").on('click', $("div.chkbox input[type=checkbox]").is(":checked"),outputDataCheck);
-		$(".txtarea").on('keyup',outputData);
-
-		checkboxData = "{$checked}"; //set the string that has the ids of the checkboxes to a javascript variable
-
-		var checked = checkboxData.split(",");
-		for (var i in checked){
-			$("#"+checked[i]).prop("checked", true);  //sets all previously checked checkboxes to checked.
-			console.log(checked[i]);
-		}
-
-		$("#accordion").accordion();
-		$("#outer-accordion").accordion();
-
-	});
-
-
-	function outputData(e){
-
-		var postData = new Array();
-		postData[0]=e.target.value;
-		postData[1]="{$current_user.wpid}";
-		$.ajax({
-			type: "POST",
-			url: "/webapp/training-tracker/checklist_post_comments",
-			data: { data: postData }
+								$row.find('.demote').attr('disabled', 'disabled');
+								$row.find('.promote').removeAttr('disabled');
+							}
+							$row.find('.permission').text(demoteName);
+							var postData = Array();
+							postData[0] = demoteTo;
+							postData[1] = wpid;
+							$.ajax({
+									type: 'POST',
+									url: '/webapp/training-tracker/staff/fate',
+									data: { data: postData }
+							}); 
+							$.gritter.add({
+								title: 'You just demoted ' + name,
+								text: name + ' was just demoted to a ' + demoteName + '.',
+							});
+							$( this ).dialog( 'close' );
+						},
+						'No': function() {
+							$( this ).dialog( 'close' );
+						}
+				}
 		});
+	},
 
-	}
-
-	function outputDataCheck(e){
-		
-
+	//statistics / checklist page function
+	outputDataCheck: function (e){
 		var postData = new Array();
-		//building a string to store the checked checkboxes, the id's are seperated by a ","
+
+		//if it checkbox you clicked was just checked.
 		if (e.target.checked){
-			if (checkboxData == "0"){
-				checkboxData = e.target.id;
-			}else{
-				if (checkboxData.indexOf(e.target.id)==-1){
-					checkboxData = checkboxData + "," + e.target.id;
-				}
-			}
+			//pass complete
+			var response = 'complete';
 		}else{
-			if (checkboxData.indexOf(e.target.id)!=-1){
-					if (checkboxData.indexOf(e.target.id) > 1){
-						var replace_string = "," + e.target.id; 
-						checkboxData = checkboxData.replace(replace_string,"");
-					}else{
-						var replace_string = e.target.id; 
-						checkboxData = checkboxData.replace(replace_string,"");
-						
-					}
-				}
-
-
-		}
-		//checking the string for extranious cases.
-		if (checkboxData.indexOf(",")==0){
-			checkboxData = checkboxData.replace(",","");
-		}
-		if (checkboxData == ""){
-				checkboxData = "0";
+			//pass n/a	
+			var response = 'incomplete';
 		}
 		//active user is the person looking at the page
 		//current user is the person they are looking at
-
-
-		console.log(checkboxData.match("/k[2,]/"));
-		console.log(checkboxData);
-		postData[0]=checkboxData;
-		postData[1]="{$current_user.wpid}";
-		postData[2]="{$active_user.wpid}";
+		postData[0]=e.target.id; //id of the checkbox
+		postData[1]=current_user_wpid;
+		postData[2]=response;
 		$.ajax({
-			type: "POST",
-			url: "/webapp/training-tracker/checklist_post_chkbox",
+			type: 'POST',
+			url: '/webapp/training-tracker/staff/checklist/item',
 			data: { data: postData }
 		});	
 
-	} */
+	},
+
+	promotionPost: function (wpid, $row){
+		var name = $row.find('.name').html();
+		$('.popup_text').text('Are sure you want to promote ' + name + '?');
+		$( '#confirmation' ).dialog({
+					resizable: false,
+					height:200,
+					modal: true,
+					buttons: {
+						'Yes': function() {
+							var promoteText = $row.find('.permission').html();
+							if (promoteText == 'Information Desk Trainee'){
+								var promoteTo = 'sta';
+								var promoteName = 'Information Desk Consultant';
+								$row.find('.demote').removeAttr('disabled');
+							}
+							else{
+								var promoteTo = 'shift_leader';
+								var promoteName = 'Senior Information Desk Consultant';
+								$row.find('.promote').attr('disabled', 'disabled');
+								$row.find('.demote').removeAttr('disabled');
+							}
+							$row.find('.permission').text(promoteName);
+							var postData = Array();
+							postData[0] = promoteTo;
+							postData[1] = wpid;
+							$.ajax({
+								type: 'POST',
+								url: '/webapp/training-tracker/staff/fate',
+								data: { data: postData }
+							});  
+							$( this ).dialog( 'close' );
+							$.gritter.add({
+								title: 'You just promoted ' + name,
+								text: name + ' was just promoted to a ' + promoteName + '.',
+							});
+					},
+						'No': function() {
+							$( this ).dialog( 'close' );
+						}
+					}
+			});
+	},
+
+	recaculateProgress: function (e){
+		var $el = $(this).closest('.inner-goals');
+		var checked = $el.find('input:checked').length;
+		var all = $el.find('input').length;
+		var newProgress = Math.round(((checked / all)*100)*100)/100;
+
+		var $progress = $el.prev();
+		var $progressbar = $progress.find('.progressbar');
+		$progressbar.progressbar( 'option', 'value', newProgress);
+		
+		$progress.find('.progress').text(newProgress);
+
+		var $allProgress = $('.progress');
+		var total = 0;
+		$allProgress.each(function(){
+			total += parseFloat($(this).text());
+		});
+
+		var overallProgress = Math.round((total / $allProgress.length)*100)/100;
+		$('#overall').progressbar( 'option', 'value', overallProgress);
+		$('#total-progress').text(overallProgress);
+	}
+};
+
+

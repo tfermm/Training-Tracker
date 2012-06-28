@@ -1,12 +1,12 @@
 $(function(){
-	$(".progressbar").progressbar({});
 
-	var $progressbars = $(".progressbar");
+	var $progress = $('.progressbar');
+	$progress.progressbar();
 
-	$.each($progressbars, function(){
-		var value = $(this).data("progress");
-		var id = $(this).attr("id");
-		$("#"+id).progressbar("option","value", value );
+	$progress.each( function(){
+		var $el = $(this);
+
+		$el.progressbar('option','value', $el.data('progress') );
 	});
 
 });

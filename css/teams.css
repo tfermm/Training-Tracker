@@ -11,7 +11,7 @@
 .connectedSortable{
 	margin: 1em 0em 1em 0em;
 }
-#team1, #team2 { 
+.team{ 
 	list-style-type: none; 
 	margin: .5em 0em .5em 0em;
 	float: left; 
@@ -20,13 +20,13 @@
 	width: 90%;
 }
 
-#team1 li, #team2 li { 
+.team li { 
 	margin: 5px; 
 	padding: 5px; 
 	font-size: 1.2em; 
 	width: 95%; 
 }
-.teams{
+.team_builder{
 	min-height: 500px;
 
 }

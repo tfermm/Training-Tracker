@@ -6,7 +6,7 @@ respond( function( $request, $response, $app ) {
 });
 respond( 'GET', '/builder', function( $request, $response, $app ) {
 	if (!$app->is_admin){
-		die("You do not have access to this page.");
+		die('You do not have access to this page.');
 	}
 
 	$wpid = $app->user->wpid;
@@ -61,7 +61,7 @@ respond( 'POST', '/builder', function( $request, $responce, $app ) {
 			}
 			
 		}
-		else if ($mentor_wpid == "unassigned"){
+		else if ($mentor_wpid == 'unassigned'){
 			//if you move the mentee back to the mentee category in the team builder, it removes their database entry.
 			TrainingTracker::team_delete($mentee_wpid);
 		}
@@ -72,13 +72,13 @@ respond( 'POST', '/builder', function( $request, $responce, $app ) {
 respond( 'GET', '/list/[:wpid]', function( $request, $responce, $app ) {
 	
 	if (!$app->is_mentor){
-		$responce->redirect("../list");
+		$responce->redirect('../list');
 	}
 
 	$wpid = $request->wpid;
 
 	if(!TrainingTracker::valid_wpid($wpid)){
-		$responce->redirect("../list");
+		$responce->redirect('../list');
 	}
 
 	$teams = TrainingTracker::get_teams(); 
@@ -87,7 +87,7 @@ respond( 'GET', '/list/[:wpid]', function( $request, $responce, $app ) {
 		unset ($my_team['mentor']);
 		foreach ($my_team as &$member){
 			if (isset($member['name'])){
-				$current_user_parameter["wpid"] = $member['wpid'];
+				$current_user_parameter['wpid'] = $member['wpid'];
 				$current_user = new TrainingTracker\Staff($current_user_parameter);
 				$member = $current_user;
 			}
@@ -95,10 +95,10 @@ respond( 'GET', '/list/[:wpid]', function( $request, $responce, $app ) {
 
 	}
 	else{
-		$my_team['mentor']['name'] = "Loner";
-		$my_team['mentor']['wpid'] = "F4ilure";
-		$my_team['loner']['name'] = "You have no team =(";
-		$my_team['loner']['wpid'] = "loner.jpg";
+		$my_team['mentor']['name'] = 'Loner';
+		$my_team['mentor']['wpid'] = 'F4ilure';
+		$my_team['loner']['name'] = 'You have no team =(';
+		$my_team['loner']['wpid'] = 'loner.jpg';
 	}
 	$app->tpl->assign('teams', $my_team);
 	$app->tpl->display('myteam.tpl');

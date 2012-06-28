@@ -56,12 +56,8 @@ respond( function( $request, $response, $app ) {
 		}	
 
 		if (!$is_valid){
-			die("You do not have access to this app.");
+			die('You do not have access to this app.');
 		}
-
-
-		 //Make me a LLC Manager in callog
-		//$result = PSU::db('calllog')->Execute("UPDATE call_log_employee SET user_privileges = 'manager' WHERE user_name='tlferm'");
 
 		$teams_data = TrainingTracker::get_teams();
 
@@ -82,20 +78,20 @@ respond( function( $request, $response, $app ) {
 		}
 		if (!$is_mentor){
 			foreach ($mentors as $mentor){
-				if ($app->user->wpid == $teacher->wpid){
+				if ($app->user->wpid == $mentor->wpid){
 					$is_mentor = true;
 				}
 			}
 		}
 
-		$active_user_parameters["wpid"] = $wpid;
+		$active_user_parameters['wpid'] = $wpid;
 		$active_user = new TrainingTracker\Staff($active_user_parameters);
 
-		$memcache->set( 'active_user', $active_user, MEMCACHE_COMPRESSED, 60 * 5);
-		$memcache->set( 'has_team', $has_team, MEMCACHE_COMPRESSED, 60 * 5);
-		$memcache->set( 'is_admin', $is_admin, MEMCACHE_COMPRESSED, 60 * 5);
-		$memcache->set( 'is_mentor', $is_mentor, MEMCACHE_COMPRESSED, 60 * 5);
-		$memcache->set( 'is_valid', $is_valid, MEMCACHE_COMPRESSED, 60 * 5);
+		$memcache->set( 'active_user', $active_user, MEMCACHE_COMPRESSED, 60 * 5 );
+		$memcache->set( 'has_team', $has_team, MEMCACHE_COMPRESSED, 60 * 5 );
+		$memcache->set( 'is_admin', $is_admin, MEMCACHE_COMPRESSED, 60 * 5 );
+		$memcache->set( 'is_mentor', $is_mentor, MEMCACHE_COMPRESSED, 60 * 5 );
+		$memcache->set( 'is_valid', $is_valid, MEMCACHE_COMPRESSED, 60 * 5 );
 
 	}
 	else{
@@ -108,7 +104,7 @@ respond( function( $request, $response, $app ) {
 	}
 
 	if (!$is_valid){
-		die("You do not have access to this app.");
+		die('You do not have access to this app.');
 	}
 
 	$app->active_user = $active_user;
@@ -144,8 +140,9 @@ respond( '/?', function( $request, $response, $app ) {
 
 	foreach ($staff as $person){
 		$pidm = $person->person()->pidm;
-
-		if (!TrainingTracker::checklist_exists($pidm)){
+		
+		$type = TrainingTracker::checklist_type($person->privileges);
+		if (!TrainingTracker::checklist_exists($pidm, $type, 0)){
 			//get tybe based off of a persons privileges
 			$type = TrainingTracker::checklist_type($person->privileges);
 			//insert new checklist (pidm, type)

@@ -30,7 +30,7 @@
 }
 
 .hidden{
-	/* TODO: we might have this one declared centrally */
+	/* TODO: we might have this one declared centrally called clear */
 	visibility:hidden;
 }
 

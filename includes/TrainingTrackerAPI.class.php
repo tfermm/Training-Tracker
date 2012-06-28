@@ -2,11 +2,11 @@
 
 class TrainingTracker{
 
-	public function checklist_exists( $pidm = null ){
+	public function checklist_exists( $pidm = null, $type = null, $closed = null ){
 
 		if (isset($pidm)){
-			$sql = "SELECT pidm FROM person_checklists WHERE pidm = ? AND closed = ?";
-			$result = \PSU::db('hr')->GetOne($sql, array($pidm, 0));
+			$sql = "SELECT pidm FROM person_checklists WHERE pidm = ? AND closed = ? AND type = ?";
+			$result = \PSU::db('hr')->GetOne($sql, array($pidm, $closed, $type));
 
 			if (!$result){
 				$return_value = false;
@@ -14,7 +14,6 @@ class TrainingTracker{
 			else{
 				$return_value = true;
 			}
-
 		}
 		else{
 			$return_value = "Error: no pidm supplied";
