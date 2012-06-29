@@ -9,6 +9,7 @@
 	box-sizing: content-box !important;
 }
 .ui-accordion-content{
+	-moz-box-sizing: content-box !important;
 	box-sizing: content-box !important;
 }
 

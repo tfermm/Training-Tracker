@@ -62,13 +62,13 @@ class Staff extends \PSU_DataObject {
 		$completed = sizeof($checkboxes); 
 
 		if ($current_level == 'trainee'){
-			$search = array("16","17","18","19");
+			$search = array("13","14","15","16");
 		}
 		else if ($current_level == 'sta'){
-			$search = array("20","21","22","23","24","25","26","27");
+			$search = array("17","18","19","20","21","22","23","24");
 		}
 		else{
-			$search = array("28","29","30","31","32","33");
+			$search = array("25","26","27","28","29","30");
 		}
 		$stats = array();
 		foreach ($search as $item){
@@ -89,63 +89,63 @@ class Staff extends \PSU_DataObject {
 		
 		
 			$stat = sizeof($stat);
-			if ($item == 16){
+			if ($item == 13){
+				$stat = $stat/5;
+			}
+			else if ($item == 14){
+				$stat = $stat/9;
+			}
+			else if ($item == 15){
+				$stat = $stat/8;
+			}
+			else if ($item == 16){
 				$stat = $stat/5;
 			}
 			else if ($item == 17){
-				$stat = $stat/9;
-			}
-			else if ($item == 18){
-				$stat = $stat/8;
-			}
-			else if ($item == 19){
-				$stat = $stat/5;
-			}
-			else if ($item == 20){
 				$stat = $stat/6;
 			}
-			else if ($item == 21){
+			else if ($item == 18){
 				$stat = $stat/4;
 			}
-			else if ($item == 22){
+			else if ($item == 19){
 				$stat = $stat/8;
 			}
-			else if ($item == 23){
+			else if ($item == 20){
 				$stat = $stat/3;
 			}
-			else if ($item == 24){
+			else if ($item == 21){
 				if ($stat > 2){
 					$stat = 2;
 				}
 				$stat = $stat/2;
 			}
-			else if ($item == 25){
+			else if ($item == 22){
 				$stat = $stat/4;
 			}
-			else if ($item == 26){
+			else if ($item == 23){
 				if ($stat  > 1){
 					$stat = 1;
 				}
 			}
-			else if ($item == 27){
+			else if ($item == 24){
 				$stat = $stat/4;
 			}
-			else if ($item == 28){
+			else if ($item == 25){
 				$stat = $stat/5;
 			}
-			else if ($item == 29){
+			else if ($item == 26){
 				$stat = $stat/3;
 			}
-			else if ($item == 30){
+			else if ($item == 27){
 				$stat = $stat/2;
 			}
-			else if ($item == 31){
+			else if ($item == 28){
 				$stat = $stat/2;
 			}
-			else if ($item == 32){
+			else if ($item == 29){
 				$stat = $stat/4;
 			}
-			else if ($item == 33){
+			else if ($item == 30){
 				$stat = $stat/4;
 			} 
 			
@@ -162,16 +162,8 @@ class Staff extends \PSU_DataObject {
 
 		$stats['progress'] = $progress;
 
-		//PSU::dbug($stats);
-		//die();
 		return (isset($parameter)?$stats[$parameter]:$stats);
-
-		
 	
-	//get stats
-		//todo move get stats logic to here
-		//$stats = get_stats($this->wpid);
-		//return $stats;
 	}//end stats
 
 }//end class

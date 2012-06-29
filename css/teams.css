@@ -19,7 +19,10 @@
 	padding: 1em; 
 	width: 90%;
 }
-
+.ui-state-highlight{
+	margin: .5em 0em .5em .25em !important;
+	padding: 1em !important; 
+}
 .team li { 
 	margin: 5px; 
 	padding: 5px; 

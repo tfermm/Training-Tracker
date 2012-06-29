@@ -1,6 +1,6 @@
 $(function() { 
 
-		$('.confirm').mouseenter(function(){
+	$('.confirm').mouseenter(function(){
 		$('.confirm-text').addClass('tt-warning');
 	}).mouseleave(function(){
 		$('.confirm-text').removeClass('tt-warning');
@@ -13,6 +13,20 @@ $(function() {
 	$progress.each( function(){
 		$(this).progressbar( 'option', 'value', $(this).data('progress'));
 	});
+
+	//var checkboxes = $(".chkbox-container");
+	$('.chkbox-container').each( function(){
+console.log($(this));
+		 $(this).mouseenter(function() {
+			 $(this).addClass('highlight');
+		 }).mouseleave(function() {
+			 $(this).removeClass('highlight');
+		 });
+		$(this).tooltip({
+				placement: "right" 
+		});
+	});
+
 });
 
 

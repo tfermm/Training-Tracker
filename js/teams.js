@@ -4,11 +4,16 @@ $(function(){
 	$( '.team' ).sortable({
 		connectWith: '.team',
 		appendTo: 'body',
+		placeholder: "ui-state-highlight",
+		start: function(e, ui){
+        ui.placeholder.height(ui.item.height());
+    },
 		helper: function(event,$item){
 			var $helper = $('<ul class = "styled"><li id="' +  event.originalEvent.target.id + '">' + event.originalEvent.target.innerHTML + '</li></ul>');
 			mentee_wpid = event.originalEvent.target.id;
 			mentor_wpid_alt = $('#'+event.currentTarget.id).parent().find('select').val();
-
+			var height = $(this).height();
+			$('.ui-state-highlight').attr('alt', 'Beijing Brush Seller');
 			return $helper;
 		},
 		receive: function(event, ui){
